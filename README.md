@@ -7,6 +7,8 @@ Um sistema moderno e acessível para gerenciar registros de estudantes e ativida
 - **Interface Moderna**: Design responsivo e acessível seguindo padrões WCAG 2.1 AA
 - **Gestão de Estudantes**: Registro, busca e gerenciamento de dados de estudantes
 - **Atividades Complementares**: Criação e organização de atividades educacionais
+- **Integração Google Sheets**: Salva automaticamente os registros em planilha Google (opcional)
+- **Envio de Emails**: Notificações automáticas via EmailJS (opcional)
 - **Validação Robusta**: Validação em tempo real com feedback acessível
 - **Responsivo**: Otimizado para dispositivos móveis, tablets e desktop
 - **Acessibilidade**: Navegação por teclado, leitores de tela e alto contraste
@@ -61,17 +63,27 @@ src/
    npm install
    ```
 
-2. **Executar em desenvolvimento**:
+2. **Configurar integrações (opcional)**:
+   
+   **Para Google Sheets:**
+   - Copie `.env.example` para `.env`
+   - Siga o guia completo em `GOOGLE_SHEETS_SETUP.md`
+   - Ou use o guia rápido em `GUIA_RAPIDO_GOOGLE.md`
+   
+   **Para EmailJS:**
+   - Siga o guia em `EMAILJS_SETUP.md`
+
+3. **Executar em desenvolvimento**:
    ```bash
    npm run dev
    ```
 
-3. **Construir para produção**:
+4. **Construir para produção**:
    ```bash
    npm run build
    ```
 
-4. **Visualizar build de produção**:
+5. **Visualizar build de produção**:
    ```bash
    npm run preview
    ```
@@ -143,6 +155,36 @@ O sistema segue as diretrizes WCAG 2.1 AA:
 - **Robusto**: Compatível com tecnologias assistivas
 
 ## 🔧 Configuração
+
+### Integrações Opcionais
+
+#### Google Sheets (Opcional)
+Salve automaticamente os registros em uma planilha Google:
+
+1. **Guia Completo**: Veja `GOOGLE_SHEETS_SETUP.md` para instruções detalhadas
+2. **Guia Rápido**: Veja `GUIA_RAPIDO_GOOGLE.md` para configuração em 5 minutos
+
+**Configuração no `.env`:**
+```env
+ENABLE_GOOGLE_INTEGRATION=true
+GOOGLE_SHEETS_ID=seu_id_da_planilha
+GOOGLE_SHEETS_WORKSHEET=Registros
+GOOGLE_DRIVE_FOLDER_ID=seu_id_da_pasta
+GOOGLE_API_KEY=sua_chave_api
+```
+
+#### EmailJS (Opcional)
+Envie notificações por email automaticamente:
+
+1. **Guia**: Veja `EMAILJS_SETUP.md` para instruções completas
+
+**Configuração no `.env`:**
+```env
+EMAILJS_SERVICE_ID=seu_service_id
+EMAILJS_TEMPLATE_ID=seu_template_id
+EMAILJS_USER_ID=seu_user_id
+DESTINATION_EMAIL=email1@exemplo.com,email2@exemplo.com
+```
 
 ### Variáveis CSS Personalizáveis
 
