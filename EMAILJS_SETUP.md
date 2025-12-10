@@ -62,12 +62,27 @@ Este email foi enviado automaticamente pelo sistema de registro de atividades co
    ALLOWED_FILE_TYPES=.pdf,.jpg,.jpeg,.png,.doc,.docx
    ```
 
-### 6. Testar Configuração
+### 6. Configurar Múltiplos Destinatários (Opcional)
+
+Para enviar o registro para múltiplas pessoas, adicione os emails separados por vírgula:
+
+```env
+DESTINATION_EMAIL=coordenacao@escola.edu.br,secretaria@escola.edu.br,diretor@escola.edu.br
+```
+
+**Importante:**
+- Separe os emails por vírgula
+- Não use espaços entre os emails
+- O sistema enviará uma cópia para cada email listado
+- Todos receberão o mesmo conteúdo e anexos
+
+### 7. Testar Configuração
 1. Reinicie o servidor de desenvolvimento
 2. Preencha um registro completo
-3. Clique em "Salvar Registro"
-4. Confirme o envio por email
-5. Verifique se o email chegou no destino
+3. Clique em "Enviar Registro de Atividades Complementares"
+4. Revise o resumo no modal
+5. Confirme o envio
+6. Verifique se o email chegou em todos os destinos
 
 ## 🔧 Solução de Problemas
 

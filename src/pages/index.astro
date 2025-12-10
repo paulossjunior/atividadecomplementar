@@ -7,7 +7,7 @@ const emailConfig = {
   serviceId: import.meta.env.EMAILJS_SERVICE_ID || 'your_service_id_here',
   templateId: import.meta.env.EMAILJS_TEMPLATE_ID || 'your_template_id_here', 
   userId: import.meta.env.EMAILJS_USER_ID || 'your_user_id_here',
-  destinationEmail: import.meta.env.DESTINATION_EMAIL || 'coordenacao@escola.edu.br'
+  destinationEmails: (import.meta.env.DESTINATION_EMAIL || 'coordenacao@escola.edu.br').split(',').map(e => e.trim())
 };
 
 // Configurações de Upload de Arquivos (do arquivo .env)
@@ -1583,24 +1583,36 @@ Data do registro: ${new Date(studentData.registeredAt).toLocaleString('pt-BR')}
           throw new Error('Configure as credenciais do EmailJS no arquivo .env');
         }
 
-        const templateParams = {
-          to_email: config.destinationEmail,
-          student_name: emailData.student.name,
-          student_email: emailData.student.email,
-          student_id: emailData.student.matricula,
-          total_points: emailData.student.totalPoints,
-          message: emailData.emailBody,
-          attachments: emailData.attachments // EmailJS suporta anexos em Base64
-        };
-
-        // Enviar email
-        const response = await emailjs.send(config.serviceId, config.templateId, templateParams, config.userId);
+        // Enviar para múltiplos destinatários
+        const destinationEmails = config.destinationEmails || [config.destinationEmail];
+        console.log(`Enviando email para ${destinationEmails.length} destinatário(s)...`);
         
-        if (response.status === 200) {
-          console.log('Email enviado com sucesso!');
+        const sendPromises = destinationEmails.map(async (email) => {
+          const templateParams = {
+            to_email: email.trim(),
+            student_name: emailData.student.name,
+            student_email: emailData.student.email,
+            student_id: emailData.student.matricula,
+            total_points: emailData.student.totalPoints,
+            message: emailData.emailBody,
+            attachments: emailData.attachments // EmailJS suporta anexos em Base64
+          };
+
+          console.log(`Enviando para: ${email}`);
+          return await emailjs.send(config.serviceId, config.templateId, templateParams, config.userId);
+        });
+
+        // Aguardar todos os envios
+        const responses = await Promise.all(sendPromises);
+        
+        // Verificar se todos foram enviados com sucesso
+        const allSuccess = responses.every(response => response.status === 200);
+        
+        if (allSuccess) {
+          console.log(`✅ Email enviado com sucesso para ${destinationEmails.length} destinatário(s)!`);
           return true;
         } else {
-          throw new Error(`Falha no envio do email: ${response.text || response.status}`);
+          throw new Error('Alguns emails falharam no envio');
         }
       } catch (error) {
         console.error('Erro ao enviar email:', error);
