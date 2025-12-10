@@ -1,0 +1,1063 @@
+---
+import type { Activity } from '../types';
+
+export interface Props {
+  activities: Activity[];
+  showCreateForm?: boolean;
+  showStats?: boolean;
+}
+
+const { activities, showCreateForm = true, showStats = true } = Astro.props;
+---
+
+<div class="activity-manager">
+  {showStats && (
+    <div class="stats-section">
+      <h2>Estatísticas das Atividades</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{activities.length}</div>
+          <div class="stat-label">Total de Atividades</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="total-enrollments">0</div>
+          <div class="stat-label">Total de Inscrições</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="avg-students">0</div>
+          <div class="stat-label">Média por Atividade</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="empty-activities">0</div>
+          <div class="stat-label">Atividades Vazias</div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {showCreateForm && (
+    <div class="create-section">
+      <div class="section-header">
+        <h2>Criar Nova Atividade</h2>
+        <button type="button" class="btn btn-secondary" id="toggle-form">
+          <span class="toggle-text">Mostrar Formulário</span>
+        </button>
+      </div>
+      
+      <form id="activity-form" class="activity-form" style="display: none;" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="activity-name" class="form-label">
+              Nome da Atividade <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="activity-name"
+              name="name"
+              class="form-input"
+              required
+              maxlength="100"
+              aria-describedby="name-help name-error"
+            />
+            <div id="name-help" class="form-help">
+              Digite um nome único para a atividade
+            </div>
+            <div id="name-error" class="form-error" role="alert"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="activity-description" class="form-label">
+              Descrição <span class="required">*</span>
+            </label>
+            <textarea
+              id="activity-description"
+              name="description"
+              class="form-input"
+              rows="4"
+              required
+              maxlength="500"
+              aria-describedby="description-help description-error"
+            ></textarea>
+            <div id="description-help" class="form-help">
+              Descreva os objetivos e conteúdo da atividade (mínimo 10 caracteres)
+            </div>
+            <div id="description-error" class="form-error" role="alert"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="create-btn">
+            <span class="btn-text">Criar Atividade</span>
+            <span class="btn-loading" style="display: none;">Criando...</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="cancel-btn">
+            Cancelar
+          </button>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div id="form-success" class="alert alert-success" style="display: none;" role="alert">
+          Atividade criada com sucesso!
+        </div>
+        <div id="form-error" class="alert alert-error" style="display: none;" role="alert">
+          <span id="error-message"></span>
+        </div>
+      </form>
+    </div>
+  )}
+
+  <div class="activities-section">
+    <div class="section-header">
+      <h2>Atividades Disponíveis</h2>
+      <div class="section-actions">
+        <div class="search-group">
+          <input
+            type="search"
+            id="activity-search"
+            class="search-input"
+            placeholder="Pesquisar atividades..."
+            aria-label="Pesquisar atividades"
+          />
+        </div>
+        <select id="sort-activities" class="sort-select" aria-label="Ordenar atividades">
+          <option value="name-asc">Nome (A-Z)</option>
+          <option value="name-desc">Nome (Z-A)</option>
+          <option value="students-desc">Mais Populares</option>
+          <option value="students-asc">Menos Populares</option>
+          <option value="date-desc">Mais Recentes</option>
+          <option value="date-asc">Mais Antigas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="activities-grid" id="activities-grid">
+      {activities.map((activity) => (
+        <div class="activity-card" data-activity-id={activity.id}>
+          <div class="activity-header">
+            <h3 class="activity-name">{activity.name}</h3>
+            <div class="activity-actions">
+              <button
+                type="button"
+                class="btn-action btn-edit"
+                data-activity-id={activity.id}
+                aria-label={`Editar ${activity.name}`}
+                title="Editar atividade"
+              >
+                ✏️
+              </button>
+              <button
+                type="button"
+                class="btn-action btn-delete"
+                data-activity-id={activity.id}
+                aria-label={`Excluir ${activity.name}`}
+                title="Excluir atividade"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+          
+          <div class="activity-description">
+            {activity.description}
+          </div>
+          
+          <div class="activity-footer">
+            <div class="activity-stats">
+              <span class="student-count">
+                <strong>{activity.studentCount}</strong> estudante(s)
+              </span>
+              <span class="creation-date">
+                Criada em {activity.createdAt.toLocaleDateString('pt-BR')}
+              </span>
+            </div>
+            
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm view-students"
+              data-activity-id={activity.id}
+            >
+              Ver Estudantes
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-activities" class="empty-state" style="display: none;">
+      <div class="empty-icon">📚</div>
+      <h3>Nenhuma atividade encontrada</h3>
+      <p>Não há atividades que correspondam aos critérios de pesquisa.</p>
+      <button type="button" class="btn btn-primary" id="create-first-activity">
+        Criar Primeira Atividade
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Activity Modal -->
+<div id="edit-modal" class="modal" role="dialog" aria-labelledby="edit-modal-title" aria-hidden="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="edit-modal-title">Editar Atividade</h2>
+      <button type="button" class="modal-close" aria-label="Fechar modal">×</button>
+    </div>
+    
+    <form id="edit-form" class="modal-form" novalidate>
+      <input type="hidden" id="edit-activity-id" name="activityId" />
+      
+      <div class="form-group">
+        <label for="edit-name" class="form-label">
+          Nome da Atividade <span class="required">*</span>
+        </label>
+        <input
+          type="text"
+          id="edit-name"
+          name="name"
+          class="form-input"
+          required
+          maxlength="100"
+        />
+        <div class="form-error" role="alert"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-description" class="form-label">
+          Descrição <span class="required">*</span>
+        </label>
+        <textarea
+          id="edit-description"
+          name="description"
+          class="form-input"
+          rows="4"
+          required
+          maxlength="500"
+        ></textarea>
+        <div class="form-error" role="alert"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">
+          Salvar Alterações
+        </button>
+        <button type="button" class="btn btn-secondary modal-cancel">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Students Modal -->
+<div id="students-modal" class="modal" role="dialog" aria-labelledby="students-modal-title" aria-hidden="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content modal-large">
+    <div class="modal-header">
+      <h2 id="students-modal-title">Estudantes Inscritos</h2>
+      <button type="button" class="modal-close" aria-label="Fechar modal">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div id="students-list" class="students-list">
+        <!-- Students will be loaded dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .activity-manager {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+  }
+
+  .stats-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .stats-section h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-text);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .stat-card {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background: var(--color-background-alt);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .stat-number {
+    font-size: var(--font-size-3xl);
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+
+  .create-section,
+  .activities-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .section-header h2 {
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .section-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+  }
+
+  .search-input,
+  .sort-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .search-input {
+    min-width: 200px;
+  }
+
+  .activity-form {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    background: var(--color-background-alt);
+  }
+
+  .form-row {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .activities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .activity-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    background: white;
+    transition: all var(--transition-base);
+  }
+
+  .activity-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-light);
+  }
+
+  .activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .activity-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+    flex: 1;
+  }
+
+  .activity-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+  }
+
+  .btn-action {
+    background: none;
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+  }
+
+  .btn-action:hover {
+    background-color: var(--color-background-alt);
+  }
+
+  .btn-action:focus {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .activity-description {
+    color: var(--color-text-light);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .activity-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .activity-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .student-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+  }
+
+  .creation-date {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+  }
+
+  .btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-light);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .empty-state h3 {
+    font-size: var(--font-size-xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  /* Modal Styles */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+  }
+
+  .modal.active {
+    display: flex;
+  }
+
+  .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    position: relative;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-large {
+    max-width: 800px;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    color: var(--color-text-light);
+  }
+
+  .modal-close:hover {
+    color: var(--color-text);
+  }
+
+  .modal-form,
+  .modal-body {
+    padding: var(--spacing-lg);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .students-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .student-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .student-info h4 {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--color-text);
+  }
+
+  .student-info p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .activity-manager {
+      padding: var(--spacing-md);
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--spacing-md);
+    }
+
+    .section-actions {
+      flex-direction: column;
+    }
+
+    .search-input {
+      min-width: auto;
+    }
+
+    .activities-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .activity-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--spacing-md);
+    }
+
+    .modal-content {
+      margin: var(--spacing-md);
+      max-width: none;
+    }
+  }
+
+  /* Loading States */
+  .form-loading .btn-text {
+    display: none;
+  }
+
+  .form-loading .btn-loading {
+    display: inline;
+  }
+
+  .form-loading .btn {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* High Contrast Mode */
+  @media (prefers-contrast: high) {
+    .activity-card {
+      border-width: 2px;
+    }
+    
+    .btn-action {
+      border-width: 2px;
+    }
+  }
+</style>
+
+<script>
+  import { ActivityService } from '../utils/activityService';
+  import { StudentService } from '../utils/studentService';
+
+  class ActivityManagerHandler {
+    private container: HTMLElement;
+    private createForm: HTMLFormElement;
+    private editModal: HTMLElement;
+    private studentsModal: HTMLElement;
+    private activitiesGrid: HTMLElement;
+    private searchInput: HTMLInputElement;
+    private sortSelect: HTMLSelectElement;
+    
+    private activities: any[] = [];
+    private filteredActivities: any[] = [];
+
+    constructor() {
+      this.container = document.querySelector('.activity-manager') as HTMLElement;
+      this.createForm = document.getElementById('activity-form') as HTMLFormElement;
+      this.editModal = document.getElementById('edit-modal') as HTMLElement;
+      this.studentsModal = document.getElementById('students-modal') as HTMLElement;
+      this.activitiesGrid = document.getElementById('activities-grid') as HTMLElement;
+      this.searchInput = document.getElementById('activity-search') as HTMLInputElement;
+      this.sortSelect = document.getElementById('sort-activities') as HTMLSelectElement;
+
+      this.init();
+    }
+
+    private init() {
+      this.loadActivities();
+      this.setupEventListeners();
+      this.updateStats();
+    }
+
+    private loadActivities() {
+      this.activities = ActivityService.getAllWithCounts();
+      this.filteredActivities = [...this.activities];
+      this.renderActivities();
+    }
+
+    private setupEventListeners() {
+      // Toggle create form
+      const toggleBtn = document.getElementById('toggle-form');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', this.toggleCreateForm.bind(this));
+      }
+
+      // Create form submission
+      if (this.createForm) {
+        this.createForm.addEventListener('submit', this.handleCreateActivity.bind(this));
+        
+        const cancelBtn = document.getElementById('cancel-btn');
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', this.hideCreateForm.bind(this));
+        }
+      }
+
+      // Search and sort
+      if (this.searchInput) {
+        this.searchInput.addEventListener('input', this.handleSearch.bind(this));
+      }
+      
+      if (this.sortSelect) {
+        this.sortSelect.addEventListener('change', this.handleSort.bind(this));
+      }
+
+      // Activity actions
+      this.activitiesGrid.addEventListener('click', this.handleActivityAction.bind(this));
+
+      // Modal events
+      this.setupModalEvents();
+    }
+
+    private setupModalEvents() {
+      // Close modals
+      document.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        
+        if (target.classList.contains('modal-close') || 
+            target.classList.contains('modal-cancel') ||
+            target.classList.contains('modal-backdrop')) {
+          this.closeModals();
+        }
+      });
+
+      // Escape key to close modals
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          this.closeModals();
+        }
+      });
+
+      // Edit form submission
+      const editForm = document.getElementById('edit-form') as HTMLFormElement;
+      if (editForm) {
+        editForm.addEventListener('submit', this.handleEditActivity.bind(this));
+      }
+    }
+
+    private toggleCreateForm() {
+      const form = this.createForm;
+      const toggleBtn = document.getElementById('toggle-form') as HTMLButtonElement;
+      const toggleText = toggleBtn.querySelector('.toggle-text') as HTMLElement;
+      
+      if (form.style.display === 'none') {
+        form.style.display = 'block';
+        toggleText.textContent = 'Ocultar Formulário';
+        form.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        form.style.display = 'none';
+        toggleText.textContent = 'Mostrar Formulário';
+      }
+    }
+
+    private hideCreateForm() {
+      this.createForm.style.display = 'none';
+      this.createForm.reset();
+      this.clearFormErrors();
+      
+      const toggleBtn = document.getElementById('toggle-form') as HTMLButtonElement;
+      const toggleText = toggleBtn.querySelector('.toggle-text') as HTMLElement;
+      toggleText.textContent = 'Mostrar Formulário';
+    }
+
+    private async handleCreateActivity(event: Event) {
+      event.preventDefault();
+      
+      this.setFormLoading(true);
+      this.clearFormErrors();
+
+      try {
+        const formData = new FormData(this.createForm);
+        const name = formData.get('name') as string;
+        const description = formData.get('description') as string;
+
+        const result = await ActivityService.create(name, description);
+
+        if (result.success) {
+          this.showSuccess('Atividade criada com sucesso!');
+          this.createForm.reset();
+          this.loadActivities();
+          this.updateStats();
+          
+          setTimeout(() => {
+            this.hideCreateForm();
+          }, 2000);
+        } else {
+          this.showError(result.error || 'Erro ao criar atividade');
+        }
+      } catch (error) {
+        this.showError('Erro inesperado. Tente novamente.');
+      } finally {
+        this.setFormLoading(false);
+      }
+    }
+
+    private async handleEditActivity(event: Event) {
+      event.preventDefault();
+      
+      const form = event.target as HTMLFormElement;
+      const formData = new FormData(form);
+      const activityId = formData.get('activityId') as string;
+      const name = formData.get('name') as string;
+      const description = formData.get('description') as string;
+
+      try {
+        const result = await ActivityService.update(activityId, name, description);
+
+        if (result.success) {
+          this.closeModals();
+          this.loadActivities();
+          this.updateStats();
+          alert('Atividade atualizada com sucesso!');
+        } else {
+          alert(`Erro: ${result.error}`);
+        }
+      } catch (error) {
+        alert('Erro inesperado. Tente novamente.');
+      }
+    }
+
+    private handleActivityAction(event: Event) {
+      const target = event.target as HTMLElement;
+      const button = target.closest('button') as HTMLButtonElement;
+      
+      if (!button) return;
+
+      const activityId = button.dataset.activityId;
+      if (!activityId) return;
+
+      if (button.classList.contains('btn-edit')) {
+        this.openEditModal(activityId);
+      } else if (button.classList.contains('btn-delete')) {
+        this.deleteActivity(activityId);
+      } else if (button.classList.contains('view-students')) {
+        this.openStudentsModal(activityId);
+      }
+    }
+
+    private openEditModal(activityId: string) {
+      const activity = this.activities.find(a => a.id === activityId);
+      if (!activity) return;
+
+      const form = document.getElementById('edit-form') as HTMLFormElement;
+      const idInput = document.getElementById('edit-activity-id') as HTMLInputElement;
+      const nameInput = document.getElementById('edit-name') as HTMLInputElement;
+      const descInput = document.getElementById('edit-description') as HTMLTextAreaElement;
+
+      idInput.value = activity.id;
+      nameInput.value = activity.name;
+      descInput.value = activity.description;
+
+      this.editModal.classList.add('active');
+      this.editModal.setAttribute('aria-hidden', 'false');
+      nameInput.focus();
+    }
+
+    private async deleteActivity(activityId: string) {
+      const activity = this.activities.find(a => a.id === activityId);
+      if (!activity) return;
+
+      const confirmed = confirm(
+        `Tem certeza que deseja excluir a atividade "${activity.name}"?\n\n` +
+        `Esta ação não pode ser desfeita.`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        const result = await ActivityService.delete(activityId);
+
+        if (result.success) {
+          this.loadActivities();
+          this.updateStats();
+          alert('Atividade excluída com sucesso!');
+        } else {
+          alert(`Erro: ${result.error}`);
+        }
+      } catch (error) {
+        alert('Erro inesperado. Tente novamente.');
+      }
+    }
+
+    private openStudentsModal(activityId: string) {
+      const activity = this.activities.find(a => a.id === activityId);
+      if (!activity) return;
+
+      const students = ActivityService.getEnrolledStudents(activityId);
+      const title = document.getElementById('students-modal-title') as HTMLElement;
+      const list = document.getElementById('students-list') as HTMLElement;
+
+      title.textContent = `Estudantes - ${activity.name}`;
+
+      if (students.length === 0) {
+        list.innerHTML = '<p class="text-center">Nenhum estudante inscrito nesta atividade.</p>';
+      } else {
+        list.innerHTML = students.map(student => `
+          <div class="student-item">
+            <div class="student-info">
+              <h4>${student.name}</h4>
+              <p>${student.email} • ID: ${student.id}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      this.studentsModal.classList.add('active');
+      this.studentsModal.setAttribute('aria-hidden', 'false');
+    }
+
+    private closeModals() {
+      this.editModal.classList.remove('active');
+      this.editModal.setAttribute('aria-hidden', 'true');
+      
+      this.studentsModal.classList.remove('active');
+      this.studentsModal.setAttribute('aria-hidden', 'true');
+    }
+
+    private handleSearch() {
+      const query = this.searchInput.value.toLowerCase().trim();
+      
+      if (!query) {
+        this.filteredActivities = [...this.activities];
+      } else {
+        this.filteredActivities = this.activities.filter(activity =>
+          activity.name.toLowerCase().includes(query) ||
+          activity.description.toLowerCase().includes(query)
+        );
+      }
+
+      this.renderActivities();
+    }
+
+    private handleSort() {
+      const [field, direction] = this.sortSelect.value.split('-');
+      
+      this.filteredActivities.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (field) {
+          case 'name':
+            aValue = a.name.toLowerCase();
+            bValue = b.name.toLowerCase();
+            break;
+          case 'students':
+            aValue = a.studentCount;
+            bValue = b.studentCount;
+            break;
+          case 'date':
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      this.renderActivities();
+    }
+
+    private renderActivities() {
+      const emptyState = document.getElementById('empty-activities') as HTMLElement;
+      
+      if (this.filteredActivities.length === 0) {
+        this.activitiesGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      this.activitiesGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
+
+      // Update existing cards visibility
+      const cards = this.activitiesGrid.querySelectorAll('.activity-card');
+      cards.forEach(card => {
+        const activityId = card.getAttribute('data-activity-id');
+        const shouldShow = this.filteredActivities.some(activity => activity.id === activityId);
+        (card as HTMLElement).style.display = shouldShow ? 'block' : 'none';
+      });
+    }
+
+    private updateStats() {
+      const stats = ActivityService.getActivityStats();
+      
+      const totalEnrollments = document.getElementById('total-enrollments');
+      const avgStudents = document.getElementById('avg-students');
+      const emptyActivities = document.getElementById('empty-activities-count');
+
+      if (totalEnrollments) {
+        totalEnrollments.textContent = stats.totalStudentEnrollments.toString();
+      }
+      
+      if (avgStudents) {
+        avgStudents.textContent = stats.averageStudentsPerActivity.toString();
+      }
+      
+      if (emptyActivities) {
+        emptyActivities.textContent = stats.emptyActivities.toString();
+      }
+    }
+
+    private setFormLoading(loading: boolean) {
+      if (loading) {
+        this.createForm.classList.add('form-loading');
+      } else {
+        this.createForm.classList.remove('form-loading');
+      }
+    }
+
+    private clearFormErrors() {
+      const errorElements = this.createForm.querySelectorAll('.form-error');
+      errorElements.forEach(element => {
+        element.textContent = '';
+        (element as HTMLElement).style.display = 'none';
+      });
+
+      const successElement = document.getElementById('form-success');
+      const errorElement = document.getElementById('form-error');
+      
+      if (successElement) successElement.style.display = 'none';
+      if (errorElement) errorElement.style.display = 'none';
+    }
+
+    private showSuccess(message: string) {
+      const successElement = document.getElementById('form-success');
+      if (successElement) {
+        successElement.style.display = 'block';
+        successElement.textContent = message;
+      }
+    }
+
+    private showError(message: string) {
+      const errorElement = document.getElementById('form-error');
+      const errorMessage = document.getElementById('error-message');
+      
+      if (errorElement && errorMessage) {
+        errorMessage.textContent = message;
+        errorElement.style.display = 'block';
+      }
+    }
+  }
+
+  // Initialize when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new ActivityManagerHandler();
+  });
+</script>

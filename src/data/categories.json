@@ -1,0 +1,34 @@
+[
+  {
+    "id": "ensino",
+    "name": "Ensino",
+    "description": "Atividades relacionadas ao ensino superior ou profissionalizante",
+    "icon": "📖",
+    "maxPoints": 10,
+    "color": "#2563eb"
+  },
+  {
+    "id": "pesquisa",
+    "name": "Pesquisa",
+    "description": "Atividades de pesquisa científica e publicações",
+    "icon": "🔬",
+    "maxPoints": 10,
+    "color": "#059669"
+  },
+  {
+    "id": "cultura",
+    "name": "Cultura e Sociedade",
+    "description": "Atividades culturais, esportivas, sociais e ambientais",
+    "icon": "🎭",
+    "maxPoints": 10,
+    "color": "#dc2626"
+  },
+  {
+    "id": "representacao",
+    "name": "Representação Estudantil",
+    "description": "Participação em órgãos de representação estudantil",
+    "icon": "🏛️",
+    "maxPoints": 10,
+    "color": "#7c2d12"
+  }
+]

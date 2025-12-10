@@ -1,0 +1,550 @@
+---
+import type { Activity } from '../types';
+
+export interface Props {
+  activities: Activity[];
+  initialData?: {
+    name?: string;
+    email?: string;
+    studentId?: string;
+    selectedActivities?: string[];
+  };
+}
+
+const { activities, initialData } = Astro.props;
+---
+
+<form id="student-form" class="student-form" novalidate>
+  <div class="form-header">
+    <h2>Registro de Estudante</h2>
+    <p class="form-description">
+      Preencha os dados abaixo para registrar um estudante nas atividades complementares.
+    </p>
+  </div>
+
+  <!-- Error Summary (initially hidden) -->
+  <div id="error-summary" class="alert alert-error" role="alert" aria-live="polite" style="display: none;">
+    <h3>Corrija os seguintes erros:</h3>
+    <ul id="error-list"></ul>
+  </div>
+
+  <!-- Success Message (initially hidden) -->
+  <div id="success-message" class="alert alert-success" role="alert" aria-live="polite" style="display: none;">
+    <p>Estudante registrado com sucesso!</p>
+  </div>
+
+  <fieldset class="form-section">
+    <legend>Dados Pessoais</legend>
+    
+    <div class="form-group">
+      <label for="student-name" class="form-label">
+        Nome Completo <span class="required" aria-label="obrigatório">*</span>
+      </label>
+      <input
+        type="text"
+        id="student-name"
+        name="name"
+        class="form-input"
+        value={initialData?.name || ''}
+        required
+        aria-describedby="name-help name-error"
+        autocomplete="name"
+      />
+      <div id="name-help" class="form-help">
+        Digite o nome completo do estudante
+      </div>
+      <div id="name-error" class="form-error" role="alert" aria-live="polite"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="student-email" class="form-label">
+        Email <span class="required" aria-label="obrigatório">*</span>
+      </label>
+      <input
+        type="email"
+        id="student-email"
+        name="email"
+        class="form-input"
+        value={initialData?.email || ''}
+        required
+        aria-describedby="email-help email-error"
+        autocomplete="email"
+      />
+      <div id="email-help" class="form-help">
+        Digite um endereço de email válido
+      </div>
+      <div id="email-error" class="form-error" role="alert" aria-live="polite"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="student-id" class="form-label">
+        ID do Estudante <span class="required" aria-label="obrigatório">*</span>
+      </label>
+      <input
+        type="text"
+        id="student-id"
+        name="studentId"
+        class="form-input"
+        value={initialData?.studentId || ''}
+        required
+        pattern="[a-zA-Z0-9]{6,12}"
+        aria-describedby="id-help id-error"
+        autocomplete="username"
+      />
+      <div id="id-help" class="form-help">
+        ID único de 6-12 caracteres (letras e números apenas)
+      </div>
+      <div id="id-error" class="form-error" role="alert" aria-live="polite"></div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Seleção de Atividades</legend>
+    <div class="form-help mb-md">
+      Selecione uma ou mais atividades complementares para o estudante
+    </div>
+    
+    <div class="activities-grid" role="group" aria-labelledby="activities-legend" aria-describedby="activities-error">
+      {activities.map((activity) => (
+        <div class="activity-option">
+          <input
+            type="checkbox"
+            id={`activity-${activity.id}`}
+            name="selectedActivities"
+            value={activity.id}
+            class="activity-checkbox"
+            checked={initialData?.selectedActivities?.includes(activity.id)}
+            aria-describedby={`activity-${activity.id}-desc`}
+          />
+          <label for={`activity-${activity.id}`} class="activity-label">
+            <div class="activity-name">{activity.name}</div>
+            <div id={`activity-${activity.id}-desc`} class="activity-description">
+              {activity.description}
+            </div>
+            <div class="activity-count">
+              {activity.studentCount} estudante(s) inscritos
+            </div>
+          </label>
+        </div>
+      ))}
+    </div>
+    <div id="activities-error" class="form-error" role="alert" aria-live="polite"></div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" id="submit-btn">
+      <span class="btn-text">Registrar Estudante</span>
+      <span class="btn-loading" style="display: none;" aria-hidden="true">
+        Registrando...
+      </span>
+    </button>
+    <button type="button" class="btn btn-secondary" id="reset-btn">
+      Limpar Formulário
+    </button>
+  </div>
+</form>
+
+<style>
+  .student-form {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-2xl);
+  }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .form-header h2 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .form-description {
+    color: var(--color-text-light);
+    font-size: var(--font-size-base);
+  }
+
+  .form-section {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .form-section legend {
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .required {
+    color: var(--color-error);
+    font-weight: bold;
+  }
+
+  .activities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+  }
+
+  .activity-option {
+    position: relative;
+  }
+
+  .activity-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .activity-label {
+    display: block;
+    padding: var(--spacing-lg);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    background: var(--color-background);
+  }
+
+  .activity-label:hover {
+    border-color: var(--color-primary-light);
+    background: var(--color-background-alt);
+  }
+
+  .activity-checkbox:checked + .activity-label {
+    border-color: var(--color-primary);
+    background: rgba(37, 99, 235, 0.05);
+  }
+
+  .activity-checkbox:focus + .activity-label {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .activity-name {
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .activity-description {
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .activity-count {
+    font-size: var(--font-size-xs);
+    color: var(--color-secondary);
+    font-weight: 500;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .btn-loading {
+    display: none;
+  }
+
+  .form-loading .btn-text {
+    display: none;
+  }
+
+  .form-loading .btn-loading {
+    display: inline;
+  }
+
+  .form-loading .btn {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .student-form {
+      padding: var(--spacing-lg);
+      margin: var(--spacing-md);
+    }
+
+    .activities-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-actions .btn {
+      width: 100%;
+    }
+  }
+
+  /* High Contrast Mode */
+  @media (prefers-contrast: high) {
+    .activity-label {
+      border-width: 3px;
+    }
+    
+    .activity-checkbox:checked + .activity-label {
+      background: var(--color-primary);
+      color: white;
+    }
+  }
+</style>
+
+<script>
+  import { StudentService } from '../utils/studentService';
+  import { ActivityService } from '../utils/activityService';
+
+  class StudentFormHandler {
+    private form: HTMLFormElement;
+    private submitBtn: HTMLButtonElement;
+    private resetBtn: HTMLButtonElement;
+    private errorSummary: HTMLElement;
+    private errorList: HTMLElement;
+    private successMessage: HTMLElement;
+
+    constructor() {
+      this.form = document.getElementById('student-form') as HTMLFormElement;
+      this.submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      this.resetBtn = document.getElementById('reset-btn') as HTMLButtonElement;
+      this.errorSummary = document.getElementById('error-summary') as HTMLElement;
+      this.errorList = document.getElementById('error-list') as HTMLElement;
+      this.successMessage = document.getElementById('success-message') as HTMLElement;
+
+      this.init();
+    }
+
+    private init() {
+      this.form.addEventListener('submit', this.handleSubmit.bind(this));
+      this.resetBtn.addEventListener('click', this.handleReset.bind(this));
+      
+      // Add real-time validation
+      const inputs = this.form.querySelectorAll('input[required]');
+      inputs.forEach(input => {
+        input.addEventListener('blur', this.validateField.bind(this));
+        input.addEventListener('input', this.clearFieldError.bind(this));
+      });
+
+      // Add activity selection validation
+      const checkboxes = this.form.querySelectorAll('input[name="selectedActivities"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', this.validateActivities.bind(this));
+      });
+    }
+
+    private async handleSubmit(event: Event) {
+      event.preventDefault();
+      
+      this.clearAllErrors();
+      this.setLoading(true);
+
+      try {
+        const formData = this.getFormData();
+        const validation = StudentService.validateForm(formData);
+
+        if (!validation.isValid) {
+          this.displayErrors(validation.errors);
+          this.setLoading(false);
+          return;
+        }
+
+        const result = await StudentService.create(formData);
+
+        if (result.success) {
+          this.showSuccess();
+          this.form.reset();
+        } else {
+          this.displayErrors([{ field: 'general', message: result.error || 'Erro ao registrar estudante' }]);
+        }
+      } catch (error) {
+        this.displayErrors([{ field: 'general', message: 'Erro inesperado. Tente novamente.' }]);
+      } finally {
+        this.setLoading(false);
+      }
+    }
+
+    private handleReset() {
+      this.form.reset();
+      this.clearAllErrors();
+      this.hideSuccess();
+    }
+
+    private getFormData() {
+      const formData = new FormData(this.form);
+      const selectedActivities = formData.getAll('selectedActivities') as string[];
+      
+      return {
+        name: formData.get('name') as string,
+        email: formData.get('email') as string,
+        studentId: formData.get('studentId') as string,
+        selectedActivities
+      };
+    }
+
+    private validateField(event: Event) {
+      const input = event.target as HTMLInputElement;
+      const fieldName = input.name;
+      const value = input.value.trim();
+
+      this.clearFieldError(fieldName);
+
+      if (!value && input.required) {
+        this.setFieldError(fieldName, 'Este campo é obrigatório');
+        return;
+      }
+
+      switch (fieldName) {
+        case 'name':
+          if (value.length < 2) {
+            this.setFieldError(fieldName, 'Nome deve ter pelo menos 2 caracteres');
+          }
+          break;
+        case 'email':
+          if (value && !this.isValidEmail(value)) {
+            this.setFieldError(fieldName, 'Email deve ter um formato válido');
+          }
+          break;
+        case 'studentId':
+          if (value && !this.isValidStudentId(value)) {
+            this.setFieldError(fieldName, 'ID deve ter 6-12 caracteres alfanuméricos');
+          } else if (value && !StudentService.isIdAvailable(value)) {
+            this.setFieldError(fieldName, 'Este ID já está em uso');
+          }
+          break;
+      }
+    }
+
+    private validateActivities() {
+      const checkboxes = this.form.querySelectorAll('input[name="selectedActivities"]:checked');
+      this.clearFieldError('selectedActivities');
+      
+      if (checkboxes.length === 0) {
+        this.setFieldError('selectedActivities', 'Selecione pelo menos uma atividade');
+      }
+    }
+
+    private clearFieldError(fieldName: string | Event) {
+      const field = typeof fieldName === 'string' ? fieldName : (fieldName.target as HTMLInputElement).name;
+      const errorElement = document.getElementById(`${field}-error`);
+      if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+      }
+
+      // Remove error styling from input
+      const input = this.form.querySelector(`[name="${field}"]`) as HTMLInputElement;
+      if (input) {
+        input.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+      }
+    }
+
+    private setFieldError(fieldName: string, message: string) {
+      const errorElement = document.getElementById(`${fieldName}-error`);
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
+
+      // Add error styling to input
+      const input = this.form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement;
+      if (input) {
+        input.classList.add('error');
+        input.setAttribute('aria-invalid', 'true');
+      }
+    }
+
+    private displayErrors(errors: Array<{ field: string; message: string }>) {
+      this.errorList.innerHTML = '';
+      
+      errors.forEach(error => {
+        const li = document.createElement('li');
+        li.textContent = error.message;
+        this.errorList.appendChild(li);
+
+        if (error.field !== 'general') {
+          this.setFieldError(error.field, error.message);
+        }
+      });
+
+      this.errorSummary.style.display = 'block';
+      this.errorSummary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.errorSummary.focus();
+    }
+
+    private clearAllErrors() {
+      this.errorSummary.style.display = 'none';
+      this.errorList.innerHTML = '';
+      
+      const errorElements = this.form.querySelectorAll('.form-error');
+      errorElements.forEach(element => {
+        (element as HTMLElement).style.display = 'none';
+        element.textContent = '';
+      });
+
+      const inputs = this.form.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+      });
+    }
+
+    private showSuccess() {
+      this.successMessage.style.display = 'block';
+      this.successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.successMessage.focus();
+    }
+
+    private hideSuccess() {
+      this.successMessage.style.display = 'none';
+    }
+
+    private setLoading(loading: boolean) {
+      if (loading) {
+        this.form.classList.add('form-loading');
+        this.submitBtn.disabled = true;
+        this.resetBtn.disabled = true;
+      } else {
+        this.form.classList.remove('form-loading');
+        this.submitBtn.disabled = false;
+        this.resetBtn.disabled = false;
+      }
+    }
+
+    private isValidEmail(email: string): boolean {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    private isValidStudentId(id: string): boolean {
+      const idRegex = /^[a-zA-Z0-9]{6,12}$/;
+      return idRegex.test(id);
+    }
+  }
+
+  // Initialize form when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new StudentFormHandler();
+  });
+</script>

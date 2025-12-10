@@ -1,0 +1,500 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StudentList from '../components/StudentList.astro';
+import { StudentService } from '../utils/studentService';
+import { ActivityService } from '../utils/activityService';
+
+// Get all students and activities
+const students = StudentService.getAll();
+const activities = ActivityService.getAllWithCounts();
+const stats = StudentService.getStudentStats();
+---
+
+<Layout title="Gerenciar Estudantes - Sistema de Dados Estudantis">
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  
+  <div class="students-container">
+    <div class="page-header">
+      <h1>Gerenciar Estudantes</h1>
+      <p class="page-description">
+        Visualize, pesquise e gerencie todos os estudantes registrados no sistema.
+      </p>
+      <div class="header-actions">
+        <a href="/register" class="btn btn-primary">
+          + Registrar Novo Estudante
+        </a>
+      </div>
+    </div>
+
+    {students.length === 0 ? (
+      <div class="empty-state">
+        <div class="empty-content">
+          <div class="empty-icon" aria-hidden="true">👥</div>
+          <h2>Nenhum Estudante Registrado</h2>
+          <p>
+            Ainda não há estudantes registrados no sistema. Comece registrando o primeiro estudante.
+          </p>
+          <div class="empty-actions">
+            <a href="/register" class="btn btn-primary">
+              Registrar Primeiro Estudante
+            </a>
+            <a href="/" class="btn btn-secondary">
+              Voltar ao Início
+            </a>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <>
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number">{stats.total}</div>
+              <div class="stat-label">Total de Estudantes</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{stats.averageActivities}</div>
+              <div class="stat-label">Média de Atividades</div>
+            </div>
+            {stats.mostActiveStudent && (
+              <div class="stat-item">
+                <div class="stat-number">{stats.mostActiveStudent.activities.length}</div>
+                <div class="stat-label">Mais Ativo: {stats.mostActiveStudent.name}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- Student List Component -->
+        <StudentList 
+          students={students} 
+          activities={activities}
+          showSearch={true}
+          showActions={true}
+        />
+
+        <!-- Recent Registrations -->
+        {stats.recentRegistrations.length > 0 && (
+          <div class="recent-section">
+            <h2>Registros Recentes</h2>
+            <div class="recent-grid">
+              {stats.recentRegistrations.map((student) => (
+                <div class="recent-card">
+                  <div class="recent-info">
+                    <h3>{student.name}</h3>
+                    <p class="recent-email">{student.email}</p>
+                    <p class="recent-id">ID: {student.id}</p>
+                  </div>
+                  <div class="recent-meta">
+                    <span class="recent-date">
+                      {new Date(student.registeredAt).toLocaleDateString('pt-BR')}
+                    </span>
+                    <span class="recent-activities">
+                      {student.activities.length} atividade(s)
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    )}
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Ações Rápidas</h2>
+      <div class="actions-grid">
+        <a href="/register" class="action-item">
+          <div class="action-icon" aria-hidden="true">➕</div>
+          <div class="action-content">
+            <h3>Registrar Estudante</h3>
+            <p>Adicionar um novo estudante ao sistema</p>
+          </div>
+        </a>
+        
+        <a href="/activities" class="action-item">
+          <div class="action-icon" aria-hidden="true">📚</div>
+          <div class="action-content">
+            <h3>Gerenciar Atividades</h3>
+            <p>Criar e editar atividades complementares</p>
+          </div>
+        </a>
+        
+        <button type="button" class="action-item" id="export-all">
+          <div class="action-icon" aria-hidden="true">📊</div>
+          <div class="action-content">
+            <h3>Exportar Dados</h3>
+            <p>Baixar relatório de todos os estudantes</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="navigation-section">
+      <div class="nav-links">
+        <a href="/" class="nav-link">
+          ← Voltar ao Início
+        </a>
+        <a href="/activities" class="nav-link">
+          Gerenciar Atividades →
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .students-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-3xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-description {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin: 0 auto var(--spacing-lg);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .header-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  .empty-state {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .empty-content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.6;
+  }
+
+  .empty-state h2 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .empty-state p {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-xl);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .empty-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stats-overview {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+  }
+
+  .stat-number {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+
+  .recent-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-2xl) 0;
+  }
+
+  .recent-section h2 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+  }
+
+  .recent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .recent-card {
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+  }
+
+  .recent-info h3 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-lg);
+  }
+
+  .recent-email {
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+  }
+
+  .recent-id {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-family: monospace;
+  }
+
+  .recent-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .recent-date {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+  }
+
+  .recent-activities {
+    font-size: var(--font-size-xs);
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+
+  .quick-actions {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-2xl) 0;
+  }
+
+  .quick-actions h2 {
+    text-align: center;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .action-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-base);
+    cursor: pointer;
+  }
+
+  .action-item:hover {
+    border-color: var(--color-primary-light);
+    background: white;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .action-icon {
+    font-size: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .action-content h3 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+  }
+
+  .action-content p {
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+    margin: 0;
+  }
+
+  .navigation-section {
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .nav-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  .nav-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+  }
+
+  .nav-link:hover {
+    background-color: var(--color-background-alt);
+    text-decoration: underline;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .students-container {
+      padding: 0 var(--spacing-md);
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recent-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .empty-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .empty-actions .btn {
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .nav-links {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .recent-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-xs);
+    }
+  }
+
+  /* High Contrast Mode */
+  @media (prefers-contrast: high) {
+    .stat-item,
+    .recent-card,
+    .action-item,
+    .empty-state {
+      border-width: 2px;
+    }
+  }
+</style>
+
+<script>
+  import { StudentService } from '../utils/studentService';
+
+  // Export functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const exportBtn = document.getElementById('export-all');
+    
+    if (exportBtn) {
+      exportBtn.addEventListener('click', async () => {
+        try {
+          const exportData = StudentService.exportData();
+          
+          if (exportData.length === 0) {
+            alert('Não há dados para exportar.');
+            return;
+          }
+
+          // Create CSV content
+          const headers = Object.keys(exportData[0]);
+          const csvContent = [
+            headers.join(','),
+            ...exportData.map(row => 
+              headers.map(header => `"${row[header]}"`).join(',')
+            )
+          ].join('\n');
+
+          // Download CSV
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          
+          if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `estudantes_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        } catch (error) {
+          alert('Erro ao exportar dados. Tente novamente.');
+        }
+      });
+    }
+  });
+</script>

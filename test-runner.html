@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Runner - Atividades Complementares</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button.success {
+            background: #28a745;
+        }
+        .test-button.danger {
+            background: #dc3545;
+        }
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .test-list {
+            list-style: none;
+            padding: 0;
+        }
+        .test-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .test-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Runner - Sistema de Atividades Complementares</h1>
+        
+        <div class="instructions">
+            <h3>📋 Como usar:</h3>
+            <ol>
+                <li>Abra o <strong>Console do navegador</strong> (F12 → Console)</li>
+                <li>Abra a <strong>página principal</strong> do sistema em outra aba</li>
+                <li>Volte para esta aba e execute os testes</li>
+                <li>Veja os resultados no console</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Executar Todos os Testes</h3>
+            <p>Executa uma bateria completa de 7 testes automatizados</p>
+            <button class="test-button" onclick="runAllTests()">
+                Executar Todos os Testes
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Testes Individuais</h3>
+            <p>Execute testes específicos para debug:</p>
+            
+            <ul class="test-list">
+                <li>
+                    <strong>Teste 1:</strong> Campos obrigatórios vazios
+                    <button class="test-button" onclick="runTest(1)">Executar</button>
+                </li>
+                <li>
+                    <strong>Teste 2:</strong> Email inválido
+                    <button class="test-button" onclick="runTest(2)">Executar</button>
+                </li>
+                <li>
+                    <strong>Teste 3:</strong> Sem atividades selecionadas
+                    <button class="test-button" onclick="runTest(3)">Executar</button>
+                </li>
+                <li>
+                    <strong>Teste 4:</strong> Adicionar atividade
+                    <button class="test-button" onclick="runTest(4)">Executar</button>
+                </li>
+                <li>
+                    <strong>Teste 5:</strong> Registro completo válido
+                    <button class="test-button success" onclick="runTest(5)">Executar</button>
+                </li>
+                <li>
+                    <strong>Teste 6:</strong> Validação tipo de comprovante
+                    <button class="test-button" onclick="runTest(6)">Executar</button>
+                </li>
+                <li>
+                    <strong>Teste 7:</strong> Múltiplos anos para semestres
+                    <button class="test-button" onclick="runTest(7)">Executar</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Utilitários</h3>
+            <button class="test-button" onclick="loadTestScript()">
+                Carregar Script de Testes
+            </button>
+            <button class="test-button danger" onclick="clearConsole()">
+                Limpar Console
+            </button>
+        </div>
+
+        <div class="instructions">
+            <h3>📊 Interpretando Resultados:</h3>
+            <ul>
+                <li><strong>✅ PASSOU:</strong> Teste funcionou como esperado</li>
+                <li><strong>❌ FALHOU:</strong> Teste encontrou um problema</li>
+                <li><strong>🚨 Alert interceptado:</strong> Sistema mostrou alerta</li>
+                <li><strong>📈 Taxa de sucesso:</strong> Porcentagem de testes que passaram</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Carregar script de testes
+        async function loadTestScript() {
+            try {
+                const response = await fetch('/src/tests/form-tests.js');
+                const script = await response.text();
+                eval(script);
+                console.log('✅ Script de testes carregado com sucesso!');
+            } catch (error) {
+                console.error('❌ Erro ao carregar script de testes:', error);
+                
+                // Fallback: tentar carregar de forma alternativa
+                const script = document.createElement('script');
+                script.src = '/src/tests/form-tests.js';
+                script.onload = () => console.log('✅ Script carregado via tag script');
+                script.onerror = () => console.error('❌ Falha ao carregar script');
+                document.head.appendChild(script);
+            }
+        }
+
+        // Executar todos os testes
+        async function runAllTests() {
+            if (typeof window.runFormTests === 'function') {
+                console.log('🚀 Iniciando todos os testes...');
+                await window.runFormTests();
+            } else {
+                console.log('⚠️ Carregando script de testes primeiro...');
+                await loadTestScript();
+                setTimeout(() => {
+                    if (typeof window.runFormTests === 'function') {
+                        window.runFormTests();
+                    } else {
+                        console.error('❌ Não foi possível carregar os testes');
+                    }
+                }, 1000);
+            }
+        }
+
+        // Executar teste individual
+        async function runTest(testNumber) {
+            if (typeof window.runSingleTest === 'function') {
+                console.log(`🎯 Executando teste ${testNumber}...`);
+                await window.runSingleTest(testNumber);
+            } else {
+                console.log('⚠️ Carregando script de testes primeiro...');
+                await loadTestScript();
+                setTimeout(() => {
+                    if (typeof window.runSingleTest === 'function') {
+                        window.runSingleTest(testNumber);
+                    } else {
+                        console.error('❌ Não foi possível carregar os testes');
+                    }
+                }, 1000);
+            }
+        }
+
+        // Limpar console
+        function clearConsole() {
+            console.clear();
+            console.log('🧹 Console limpo!');
+        }
+
+        // Carregar automaticamente ao abrir a página
+        window.addEventListener('load', () => {
+            console.log('🧪 Test Runner carregado!');
+            console.log('📋 Use os botões na página ou os comandos:');
+            console.log('- runFormTests() - Todos os testes');
+            console.log('- runSingleTest(1-7) - Teste específico');
+            
+            loadTestScript();
+        });
+    </script>
+</body>
+</html>

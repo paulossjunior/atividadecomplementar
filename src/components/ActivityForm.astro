@@ -1,0 +1,735 @@
+---
+import type { Activity } from '../types';
+
+export interface Props {
+  activity?: Activity;
+  mode?: 'create' | 'edit';
+  onSubmit?: string; // JavaScript function name to call on submit
+  onCancel?: string; // JavaScript function name to call on cancel
+}
+
+const { activity, mode = 'create', onSubmit, onCancel } = Astro.props;
+const isEdit = mode === 'edit' && activity;
+---
+
+<form class="activity-form" id="activity-form" novalidate data-mode={mode}>
+  {isEdit && (
+    <input type="hidden" name="activityId" value={activity.id} />
+  )}
+
+  <div class="form-header">
+    <h2>{isEdit ? 'Editar Atividade' : 'Nova Atividade'}</h2>
+    <p class="form-description">
+      {isEdit 
+        ? 'Atualize as informações da atividade abaixo.'
+        : 'Preencha os dados para criar uma nova atividade complementar.'
+      }
+    </p>
+  </div>
+
+  <!-- Error Summary -->
+  <div id="error-summary" class="alert alert-error" role="alert" aria-live="polite" style="display: none;">
+    <h3>Corrija os seguintes erros:</h3>
+    <ul id="error-list"></ul>
+  </div>
+
+  <!-- Success Message -->
+  <div id="success-message" class="alert alert-success" role="alert" aria-live="polite" style="display: none;">
+    <p id="success-text"></p>
+  </div>
+
+  <fieldset class="form-section">
+    <legend>Informações da Atividade</legend>
+    
+    <div class="form-group">
+      <label for="activity-name" class="form-label">
+        Nome da Atividade <span class="required" aria-label="obrigatório">*</span>
+      </label>
+      <input
+        type="text"
+        id="activity-name"
+        name="name"
+        class="form-input"
+        value={isEdit ? activity.name : ''}
+        required
+        maxlength="100"
+        aria-describedby="name-help name-error"
+        autocomplete="off"
+      />
+      <div id="name-help" class="form-help">
+        Digite um nome único e descritivo para a atividade (3-100 caracteres)
+      </div>
+      <div id="name-error" class="form-error" role="alert" aria-live="polite"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="activity-description" class="form-label">
+        Descrição <span class="required" aria-label="obrigatório">*</span>
+      </label>
+      <textarea
+        id="activity-description"
+        name="description"
+        class="form-input"
+        rows="5"
+        required
+        maxlength="500"
+        aria-describedby="description-help description-error"
+        placeholder="Descreva os objetivos, conteúdo e metodologia da atividade..."
+      >{isEdit ? activity.description : ''}</textarea>
+      <div id="description-help" class="form-help">
+        Descreva detalhadamente a atividade (10-500 caracteres)
+        <span id="char-count" class="char-counter">0/500</span>
+      </div>
+      <div id="description-error" class="form-error" role="alert" aria-live="polite"></div>
+    </div>
+
+    {isEdit && (
+      <div class="form-group">
+        <label class="form-label">Informações Adicionais</label>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Estudantes Inscritos:</span>
+            <span class="info-value">{activity.studentCount}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Data de Criação:</span>
+            <span class="info-value">{activity.createdAt.toLocaleDateString('pt-BR')}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ID da Atividade:</span>
+            <span class="info-value"><code>{activity.id}</code></span>
+          </div>
+        </div>
+      </div>
+    )}
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" id="submit-btn">
+      <span class="btn-text">
+        {isEdit ? 'Salvar Alterações' : 'Criar Atividade'}
+      </span>
+      <span class="btn-loading" style="display: none;" aria-hidden="true">
+        {isEdit ? 'Salvando...' : 'Criando...'}
+      </span>
+    </button>
+    
+    <button type="button" class="btn btn-secondary" id="cancel-btn">
+      Cancelar
+    </button>
+    
+    {isEdit && (
+      <button type="button" class="btn btn-error" id="delete-btn" data-activity-id={activity.id}>
+        Excluir Atividade
+      </button>
+    )}
+  </div>
+
+  <!-- Character limit warning -->
+  <div id="char-warning" class="alert alert-warning" style="display: none;" role="alert">
+    <p>Você está próximo do limite de caracteres para a descrição.</p>
+  </div>
+</form>
+
+<style>
+  .activity-form {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-2xl);
+  }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .form-header h2 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .form-description {
+    color: var(--color-text-light);
+    font-size: var(--font-size-base);
+  }
+
+  .form-section {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .form-section legend {
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .required {
+    color: var(--color-error);
+    font-weight: bold;
+  }
+
+  .form-input[name="description"] {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    line-height: var(--line-height-relaxed);
+  }
+
+  .char-counter {
+    float: right;
+    font-weight: 500;
+    color: var(--color-text-light);
+  }
+
+  .char-counter.warning {
+    color: var(--color-warning);
+  }
+
+  .char-counter.error {
+    color: var(--color-error);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--color-background-alt);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .info-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-light);
+  }
+
+  .info-value {
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+  }
+
+  .info-value code {
+    background: var(--color-background);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .btn-error {
+    background-color: var(--color-error);
+    color: white;
+    border-color: var(--color-error);
+  }
+
+  .btn-error:hover:not(:disabled) {
+    background-color: #dc2626;
+    border-color: #dc2626;
+  }
+
+  .btn-loading {
+    display: none;
+  }
+
+  .form-loading .btn-text {
+    display: none;
+  }
+
+  .form-loading .btn-loading {
+    display: inline;
+  }
+
+  .form-loading .btn {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .activity-form {
+      padding: var(--spacing-lg);
+      margin: var(--spacing-md);
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-actions .btn {
+      width: 100%;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* High Contrast Mode */
+  @media (prefers-contrast: high) {
+    .form-section {
+      border-width: 2px;
+    }
+    
+    .info-grid {
+      border-width: 2px;
+    }
+  }
+
+  /* Focus Management */
+  .form-input:focus {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  /* Animation for success/error messages */
+  .alert {
+    transition: all var(--transition-base);
+  }
+
+  .alert[style*="display: block"] {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  import { ActivityService } from '../utils/activityService';
+  import { FormValidator } from '../utils/formValidation';
+
+  class ActivityFormHandler {
+    private form: HTMLFormElement;
+    private submitBtn: HTMLButtonElement;
+    private cancelBtn: HTMLButtonElement;
+    private deleteBtn: HTMLButtonElement | null;
+    private nameInput: HTMLInputElement;
+    private descriptionInput: HTMLTextAreaElement;
+    private charCounter: HTMLElement;
+    private charWarning: HTMLElement;
+    private errorSummary: HTMLElement;
+    private errorList: HTMLElement;
+    private successMessage: HTMLElement;
+    private successText: HTMLElement;
+    
+    private mode: 'create' | 'edit';
+    private activityId: string | null = null;
+
+    constructor() {
+      this.form = document.getElementById('activity-form') as HTMLFormElement;
+      this.submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      this.cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+      this.deleteBtn = document.getElementById('delete-btn') as HTMLButtonElement;
+      this.nameInput = document.getElementById('activity-name') as HTMLInputElement;
+      this.descriptionInput = document.getElementById('activity-description') as HTMLTextAreaElement;
+      this.charCounter = document.getElementById('char-count') as HTMLElement;
+      this.charWarning = document.getElementById('char-warning') as HTMLElement;
+      this.errorSummary = document.getElementById('error-summary') as HTMLElement;
+      this.errorList = document.getElementById('error-list') as HTMLElement;
+      this.successMessage = document.getElementById('success-message') as HTMLElement;
+      this.successText = document.getElementById('success-text') as HTMLElement;
+
+      this.mode = this.form.dataset.mode as 'create' | 'edit';
+      
+      const activityIdInput = this.form.querySelector('input[name="activityId"]') as HTMLInputElement;
+      this.activityId = activityIdInput?.value || null;
+
+      this.init();
+    }
+
+    private init() {
+      this.setupEventListeners();
+      this.updateCharCounter();
+      this.setupRealTimeValidation();
+    }
+
+    private setupEventListeners() {
+      // Form submission
+      this.form.addEventListener('submit', this.handleSubmit.bind(this));
+      
+      // Cancel button
+      this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
+      
+      // Delete button (edit mode only)
+      if (this.deleteBtn) {
+        this.deleteBtn.addEventListener('click', this.handleDelete.bind(this));
+      }
+
+      // Character counter for description
+      this.descriptionInput.addEventListener('input', this.updateCharCounter.bind(this));
+      
+      // Real-time validation
+      this.nameInput.addEventListener('blur', this.validateName.bind(this));
+      this.nameInput.addEventListener('input', this.clearFieldError.bind(this, 'name'));
+      
+      this.descriptionInput.addEventListener('blur', this.validateDescription.bind(this));
+      this.descriptionInput.addEventListener('input', this.clearFieldError.bind(this, 'description'));
+    }
+
+    private setupRealTimeValidation() {
+      // Add enhanced validation using FormValidator
+      FormValidator.addRealTimeValidation(
+        this.nameInput,
+        (value) => FormValidator.validateField('name', value, {
+          required: true,
+          minLength: 3,
+          maxLength: 100,
+          customValidator: (val) => {
+            // Check for duplicate names (in edit mode, exclude current activity)
+            const activities = ActivityService.getAll();
+            const isDuplicate = activities.some(activity => 
+              activity.name.toLowerCase() === val.toLowerCase() && 
+              activity.id !== this.activityId
+            );
+            return isDuplicate ? 'Já existe uma atividade com este nome' : null;
+          }
+        }),
+        'name-error'
+      );
+
+      FormValidator.addRealTimeValidation(
+        this.descriptionInput,
+        (value) => FormValidator.validateField('description', value, {
+          required: true,
+          minLength: 10,
+          maxLength: 500
+        }),
+        'description-error'
+      );
+    }
+
+    private async handleSubmit(event: Event) {
+      event.preventDefault();
+      
+      this.clearAllErrors();
+      this.setLoading(true);
+
+      try {
+        const formData = new FormData(this.form);
+        const name = formData.get('name') as string;
+        const description = formData.get('description') as string;
+
+        // Validate form
+        const validation = this.validateForm(name, description);
+        if (!validation.isValid) {
+          this.displayErrors(validation.errors);
+          this.setLoading(false);
+          return;
+        }
+
+        let result;
+        if (this.mode === 'edit' && this.activityId) {
+          result = await ActivityService.update(this.activityId, name, description);
+        } else {
+          result = await ActivityService.create(name, description);
+        }
+
+        if (result.success) {
+          const message = this.mode === 'edit' 
+            ? 'Atividade atualizada com sucesso!' 
+            : 'Atividade criada com sucesso!';
+          
+          this.showSuccess(message);
+          
+          if (this.mode === 'create') {
+            this.form.reset();
+            this.updateCharCounter();
+          }
+
+          // Call custom callback if provided
+          this.callCallback('onSubmit', result.data);
+        } else {
+          this.displayErrors([{ 
+            field: 'general', 
+            message: result.error || 'Erro ao processar atividade' 
+          }]);
+        }
+      } catch (error) {
+        this.displayErrors([{ 
+          field: 'general', 
+          message: 'Erro inesperado. Tente novamente.' 
+        }]);
+      } finally {
+        this.setLoading(false);
+      }
+    }
+
+    private handleCancel() {
+      if (this.mode === 'create') {
+        const hasChanges = this.nameInput.value.trim() || this.descriptionInput.value.trim();
+        if (hasChanges) {
+          const confirmed = confirm('Tem certeza que deseja cancelar? As alterações serão perdidas.');
+          if (!confirmed) return;
+        }
+        
+        this.form.reset();
+        this.clearAllErrors();
+        this.updateCharCounter();
+      }
+
+      this.callCallback('onCancel');
+    }
+
+    private async handleDelete() {
+      if (!this.activityId) return;
+
+      const activity = ActivityService.getById(this.activityId);
+      if (!activity) return;
+
+      const confirmed = confirm(
+        `Tem certeza que deseja excluir a atividade "${activity.name}"?\n\n` +
+        `Esta ação não pode ser desfeita. ${activity.studentCount > 0 ? 
+          `${activity.studentCount} estudante(s) serão desinscritos.` : ''}`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        this.setLoading(true);
+        
+        const result = await ActivityService.forceDelete(this.activityId);
+
+        if (result.success) {
+          this.showSuccess('Atividade excluída com sucesso!');
+          
+          setTimeout(() => {
+            this.callCallback('onDelete', this.activityId);
+          }, 1500);
+        } else {
+          alert(`Erro: ${result.error}`);
+        }
+      } catch (error) {
+        alert('Erro inesperado. Tente novamente.');
+      } finally {
+        this.setLoading(false);
+      }
+    }
+
+    private validateForm(name: string, description: string) {
+      const errors: Array<{ field: string; message: string }> = [];
+
+      // Validate name
+      const nameError = FormValidator.validateField('name', name, {
+        required: true,
+        minLength: 3,
+        maxLength: 100
+      });
+      if (nameError) errors.push(nameError);
+
+      // Check for duplicate names
+      if (name.trim()) {
+        const activities = ActivityService.getAll();
+        const isDuplicate = activities.some(activity => 
+          activity.name.toLowerCase() === name.toLowerCase() && 
+          activity.id !== this.activityId
+        );
+        if (isDuplicate) {
+          errors.push({ field: 'name', message: 'Já existe uma atividade com este nome' });
+        }
+      }
+
+      // Validate description
+      const descError = FormValidator.validateField('description', description, {
+        required: true,
+        minLength: 10,
+        maxLength: 500
+      });
+      if (descError) errors.push(descError);
+
+      return {
+        isValid: errors.length === 0,
+        errors
+      };
+    }
+
+    private validateName() {
+      const value = this.nameInput.value;
+      const error = FormValidator.validateField('name', value, {
+        required: true,
+        minLength: 3,
+        maxLength: 100
+      });
+
+      if (error) {
+        this.setFieldError('name', error.message);
+      } else {
+        // Check for duplicates
+        const activities = ActivityService.getAll();
+        const isDuplicate = activities.some(activity => 
+          activity.name.toLowerCase() === value.toLowerCase() && 
+          activity.id !== this.activityId
+        );
+        
+        if (isDuplicate) {
+          this.setFieldError('name', 'Já existe uma atividade com este nome');
+        }
+      }
+    }
+
+    private validateDescription() {
+      const value = this.descriptionInput.value;
+      const error = FormValidator.validateField('description', value, {
+        required: true,
+        minLength: 10,
+        maxLength: 500
+      });
+
+      if (error) {
+        this.setFieldError('description', error.message);
+      }
+    }
+
+    private updateCharCounter() {
+      const length = this.descriptionInput.value.length;
+      const maxLength = 500;
+      
+      this.charCounter.textContent = `${length}/${maxLength}`;
+      
+      // Update styling based on character count
+      this.charCounter.classList.remove('warning', 'error');
+      
+      if (length > maxLength * 0.9) {
+        this.charCounter.classList.add('warning');
+        this.charWarning.style.display = 'block';
+      } else {
+        this.charWarning.style.display = 'none';
+      }
+      
+      if (length >= maxLength) {
+        this.charCounter.classList.add('error');
+      }
+    }
+
+    private setFieldError(fieldName: string, message: string) {
+      const errorElement = document.getElementById(`${fieldName}-error`);
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
+
+      const input = this.form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement;
+      if (input) {
+        input.classList.add('error');
+        input.setAttribute('aria-invalid', 'true');
+      }
+    }
+
+    private clearFieldError(fieldName: string) {
+      const errorElement = document.getElementById(`${fieldName}-error`);
+      if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+      }
+
+      const input = this.form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement;
+      if (input) {
+        input.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+      }
+    }
+
+    private displayErrors(errors: Array<{ field: string; message: string }>) {
+      this.errorList.innerHTML = '';
+      
+      errors.forEach(error => {
+        const li = document.createElement('li');
+        li.textContent = error.message;
+        this.errorList.appendChild(li);
+
+        if (error.field !== 'general') {
+          this.setFieldError(error.field, error.message);
+        }
+      });
+
+      this.errorSummary.style.display = 'block';
+      this.errorSummary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.errorSummary.focus();
+    }
+
+    private clearAllErrors() {
+      this.errorSummary.style.display = 'none';
+      this.errorList.innerHTML = '';
+      this.successMessage.style.display = 'none';
+      
+      const errorElements = this.form.querySelectorAll('.form-error');
+      errorElements.forEach(element => {
+        (element as HTMLElement).style.display = 'none';
+        element.textContent = '';
+      });
+
+      const inputs = this.form.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+      });
+    }
+
+    private showSuccess(message: string) {
+      this.successText.textContent = message;
+      this.successMessage.style.display = 'block';
+      this.successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.successMessage.focus();
+    }
+
+    private setLoading(loading: boolean) {
+      if (loading) {
+        this.form.classList.add('form-loading');
+        this.submitBtn.disabled = true;
+        this.cancelBtn.disabled = true;
+        if (this.deleteBtn) this.deleteBtn.disabled = true;
+      } else {
+        this.form.classList.remove('form-loading');
+        this.submitBtn.disabled = false;
+        this.cancelBtn.disabled = false;
+        if (this.deleteBtn) this.deleteBtn.disabled = false;
+      }
+    }
+
+    private callCallback(callbackName: string, data?: any) {
+      const callbackFunctionName = this.form.dataset[callbackName];
+      if (callbackFunctionName && typeof window[callbackFunctionName] === 'function') {
+        window[callbackFunctionName](data);
+      }
+    }
+  }
+
+  // Initialize form when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new ActivityFormHandler();
+  });
+</script>

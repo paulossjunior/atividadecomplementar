@@ -1,0 +1,262 @@
+[
+  {
+    "id": "1.1",
+    "categoryId": "ensino",
+    "name": "Monitoria em disciplinas de ensino superior ou profissionalizante do Ifes",
+    "description": "Atividade de monitoria acadêmica em disciplinas do curso",
+    "unit": "Semestre",
+    "points": 5,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.2",
+    "categoryId": "ensino",
+    "name": "Estágio não obrigatório ou extracurricular em instituições de ensino",
+    "description": "Estágio realizado fora da grade curricular obrigatória",
+    "unit": "Semestre (Mínimo de 150h)",
+    "points": 10,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.3",
+    "categoryId": "ensino",
+    "name": "Curso de idioma",
+    "description": "Curso de língua estrangeira ou português",
+    "unit": "Módulo de 50h",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.4",
+    "categoryId": "ensino",
+    "name": "Visita técnica",
+    "description": "Visita técnica a empresas ou instituições relacionadas ao curso",
+    "unit": "Visita",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.5",
+    "categoryId": "ensino",
+    "name": "Presença em palestra técnico-científica relacionada com os objetivos do curso",
+    "description": "Participação em palestras técnicas da área",
+    "unit": "Palestra",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.6",
+    "categoryId": "ensino",
+    "name": "Presença em palestra de formação humanística",
+    "description": "Participação em palestras de formação geral",
+    "unit": "Palestra",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.7",
+    "categoryId": "ensino",
+    "name": "Presença em defesa de Trabalho de Conclusão de Curso",
+    "description": "Assistir defesas de TCC de outros estudantes",
+    "unit": "Participação",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.8",
+    "categoryId": "ensino",
+    "name": "Curso relacionado com os objetivos do curso",
+    "description": "Cursos complementares na área de formação",
+    "unit": "Módulo de 8h",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.9",
+    "categoryId": "ensino",
+    "name": "Disciplinas optativas que extrapolem a carga horária exigida pelo curso",
+    "description": "Disciplinas além do currículo mínimo obrigatório",
+    "unit": "Disciplina",
+    "points": 2,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.10",
+    "categoryId": "ensino",
+    "name": "Participação em projetos integradores de ensino (extracurriculares)",
+    "description": "Projetos de ensino fora da grade curricular",
+    "unit": "Projeto",
+    "points": 3,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.11",
+    "categoryId": "ensino",
+    "name": "Disciplinas cursadas em intercâmbio, não aproveitadas no processo de dispensa",
+    "description": "Disciplinas de intercâmbio não aproveitadas no currículo",
+    "unit": "Disciplina",
+    "points": 2,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "1.12",
+    "categoryId": "ensino",
+    "name": "Estágio feito em intercâmbio, de acordo com a DN Proen nº 01/2015",
+    "description": "Estágio realizado durante intercâmbio acadêmico",
+    "unit": "Semestre (Mínimo de 150 h)",
+    "points": 10,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "2.1",
+    "categoryId": "pesquisa",
+    "name": "Participação em projeto de pesquisa como bolsista ou voluntário",
+    "description": "Envolvimento em projetos de iniciação científica",
+    "unit": "Semestre",
+    "points": 10,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "2.2",
+    "categoryId": "pesquisa",
+    "name": "Publicação de artigo completo em anais de simpósios ou encontros",
+    "description": "Publicação científica em eventos menores",
+    "unit": "Publicação",
+    "points": 3,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "2.3",
+    "categoryId": "pesquisa",
+    "name": "Publicação de artigo completo em anais de congressos",
+    "description": "Publicação científica em congressos",
+    "unit": "Publicação",
+    "points": 5,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "2.4",
+    "categoryId": "pesquisa",
+    "name": "Publicação de artigo completo em revista indexada em áreas afins",
+    "description": "Publicação em periódico científico indexado",
+    "unit": "Publicação",
+    "points": 10,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "2.5",
+    "categoryId": "pesquisa",
+    "name": "Participação em congresso, simpósio, mostra de iniciação científica ou encontro técnico-científico em áreas afins",
+    "description": "Participação em eventos científicos",
+    "unit": "Participação",
+    "points": 5,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "2.6",
+    "categoryId": "pesquisa",
+    "name": "Premiação ou destaque em congressos científicos nas áreas de formação do curso",
+    "description": "Reconhecimento em eventos científicos",
+    "unit": "Menção",
+    "points": 3,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "3.1",
+    "categoryId": "cultura",
+    "name": "Participação em evento de caráter cultural, esportivo, social ou ambiental",
+    "description": "Participação em eventos diversos da comunidade",
+    "unit": "Evento",
+    "points": 2,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "3.2",
+    "categoryId": "cultura",
+    "name": "Participação em comissão organizadora de evento ou curso de caráter cultural, esportivo, social ou ambiental",
+    "description": "Organização de eventos comunitários",
+    "unit": "Evento",
+    "points": 4,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "3.3",
+    "categoryId": "cultura",
+    "name": "Ministrante de curso relacionado com os objetivos do curso",
+    "description": "Ministrar cursos na área de formação",
+    "unit": "Hora ministrada",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "3.4",
+    "categoryId": "cultura",
+    "name": "Ministrante de palestra relacionada com os objetivos do curso",
+    "description": "Ministrar palestras técnicas",
+    "unit": "Palestra",
+    "points": 3,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "3.5",
+    "categoryId": "cultura",
+    "name": "Participação em projetos comunitários e sociais relacionados aos objetivos do curso",
+    "description": "Projetos de extensão e responsabilidade social",
+    "unit": "Projeto",
+    "points": 10,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "3.6",
+    "categoryId": "cultura",
+    "name": "Participação em Maratonas e outras Competições relacionadas aos objetivos do Curso",
+    "description": "Competições técnicas e hackathons",
+    "unit": "Participação",
+    "points": 2,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "4.1",
+    "categoryId": "representacao",
+    "name": "Diretorias de Grêmios Estudantis e Diretórios Acadêmicos e Centros Acadêmicos",
+    "description": "Cargo de direção em entidades estudantis",
+    "unit": "Ano de Mandato",
+    "points": 7,
+    "maxOccurrences": null,
+    "active": true
+  },
+  {
+    "id": "4.2",
+    "categoryId": "representacao",
+    "name": "Representante de corpo discente em comissões, conselhos e órgãos colegiados do Ifes",
+    "description": "Representação estudantil em órgãos institucionais",
+    "unit": "Ano de Mandato",
+    "points": 1,
+    "maxOccurrences": null,
+    "active": true
+  }
+]

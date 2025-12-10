@@ -1,0 +1,952 @@
+---
+import type { Student, Activity } from '../types';
+
+export interface Props {
+  students: Student[];
+  activities: Activity[];
+  showSearch?: boolean;
+  showActions?: boolean;
+}
+
+const { students, activities, showSearch = true, showActions = true } = Astro.props;
+
+// Create activity lookup map for performance
+const activityMap = new Map(activities.map(activity => [activity.id, activity]));
+---
+
+<div class="student-list-container">
+  {showSearch && (
+    <div class="search-section">
+      <div class="search-header">
+        <h2>Gerenciar Estudantes</h2>
+        <p class="search-description">
+          Visualize, pesquise e gerencie os estudantes registrados no sistema.
+        </p>
+      </div>
+      
+      <div class="search-controls">
+        <div class="search-group">
+          <label for="student-search" class="search-label">
+            Pesquisar estudantes
+          </label>
+          <div class="search-input-group">
+            <input
+              type="search"
+              id="student-search"
+              class="search-input"
+              placeholder="Digite nome, email ou ID do estudante..."
+              aria-describedby="search-help"
+              autocomplete="off"
+            />
+            <button type="button" class="search-clear" aria-label="Limpar pesquisa" style="display: none;">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div id="search-help" class="search-help">
+            Digite pelo menos 2 caracteres para pesquisar
+          </div>
+        </div>
+        
+        <div class="filter-group">
+          <label for="activity-filter" class="filter-label">
+            Filtrar por atividade
+          </label>
+          <select id="activity-filter" class="filter-select">
+            <option value="">Todas as atividades</option>
+            {activities.map(activity => (
+              <option value={activity.id}>{activity.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <!-- Search Results Info -->
+      <div id="search-results-info" class="search-results" aria-live="polite">
+        Mostrando {students.length} estudante(s)
+      </div>
+    </div>
+  )}
+
+  <!-- Students Table -->
+  <div class="table-container">
+    <table class="students-table table" role="table" aria-label="Lista de estudantes">
+      <thead>
+        <tr>
+          {showActions && (
+            <th scope="col" class="select-column">
+              <input
+                type="checkbox"
+                id="select-all"
+                class="select-checkbox"
+                aria-label="Selecionar todos os estudantes"
+              />
+            </th>
+          )}
+          <th scope="col" class="sortable" data-sort="name">
+            <button class="sort-button" aria-describedby="sort-help">
+              Nome
+              <span class="sort-indicator" aria-hidden="true"></span>
+            </button>
+          </th>
+          <th scope="col" class="sortable" data-sort="email">
+            <button class="sort-button">
+              Email
+              <span class="sort-indicator" aria-hidden="true"></span>
+            </button>
+          </th>
+          <th scope="col" class="sortable" data-sort="id">
+            <button class="sort-button">
+              ID
+              <span class="sort-indicator" aria-hidden="true"></span>
+            </button>
+          </th>
+          <th scope="col">Atividades</th>
+          <th scope="col" class="sortable" data-sort="registeredAt">
+            <button class="sort-button">
+              Data de Registro
+              <span class="sort-indicator" aria-hidden="true"></span>
+            </button>
+          </th>
+          {showActions && (
+            <th scope="col" class="actions-column">Ações</th>
+          )}
+        </tr>
+      </thead>
+      <tbody id="students-tbody">
+        {students.map((student) => (
+          <tr class="student-row" data-student-id={student.id}>
+            {showActions && (
+              <td class="select-cell">
+                <input
+                  type="checkbox"
+                  class="select-checkbox student-checkbox"
+                  value={student.id}
+                  aria-label={`Selecionar ${student.name}`}
+                />
+              </td>
+            )}
+            <td class="name-cell">
+              <div class="student-name">{student.name}</div>
+            </td>
+            <td class="email-cell">
+              <a href={`mailto:${student.email}`} class="email-link">
+                {student.email}
+              </a>
+            </td>
+            <td class="id-cell">
+              <code class="student-id">{student.id}</code>
+            </td>
+            <td class="activities-cell">
+              <div class="activity-badges">
+                {student.activities.map(activityId => {
+                  const activity = activityMap.get(activityId);
+                  return activity ? (
+                    <span class="activity-badge" title={activity.description}>
+                      {activity.name}
+                    </span>
+                  ) : (
+                    <span class="activity-badge activity-badge-missing" title="Atividade não encontrada">
+                      ID: {activityId}
+                    </span>
+                  );
+                })}
+              </div>
+            </td>
+            <td class="date-cell">
+              <time datetime={student.registeredAt.toISOString()}>
+                {student.registeredAt.toLocaleDateString('pt-BR')}
+              </time>
+            </td>
+            {showActions && (
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button
+                    type="button"
+                    class="btn-action btn-edit"
+                    data-student-id={student.id}
+                    aria-label={`Editar ${student.name}`}
+                    title="Editar estudante"
+                  >
+                    <span aria-hidden="true">✏️</span>
+                    <span class="sr-only">Editar</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action btn-delete"
+                    data-student-id={student.id}
+                    aria-label={`Excluir ${student.name}`}
+                    title="Excluir estudante"
+                  >
+                    <span aria-hidden="true">🗑️</span>
+                    <span class="sr-only">Excluir</span>
+                  </button>
+                </div>
+              </td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <div class="empty-icon" aria-hidden="true">📋</div>
+      <h3>Nenhum estudante encontrado</h3>
+      <p>Não há estudantes que correspondam aos critérios de pesquisa.</p>
+      <button type="button" class="btn btn-secondary" id="clear-search">
+        Limpar Pesquisa
+      </button>
+    </div>
+  </div>
+
+  {showActions && (
+    <div class="bulk-actions" id="bulk-actions" style="display: none;">
+      <div class="bulk-actions-info">
+        <span id="selected-count">0</span> estudante(s) selecionado(s)
+      </div>
+      <div class="bulk-actions-buttons">
+        <button type="button" class="btn btn-secondary" id="bulk-export">
+          Exportar Selecionados
+        </button>
+        <button type="button" class="btn btn-error" id="bulk-delete">
+          Excluir Selecionados
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
+<!-- Hidden elements for screen readers -->
+<div id="sort-help" class="sr-only">
+  Clique para ordenar por esta coluna. Use as setas do teclado para navegar entre as opções de ordenação.
+</div>
+
+<style>
+  .student-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .search-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .search-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .search-header h2 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .search-description {
+    color: var(--color-text-light);
+    font-size: var(--font-size-base);
+  }
+
+  .search-controls {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-lg);
+    align-items: end;
+  }
+
+  .search-group,
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .search-label,
+  .filter-label {
+    font-weight: 500;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text);
+  }
+
+  .search-input-group {
+    position: relative;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    transition: border-color var(--transition-base);
+  }
+
+  .search-input:focus,
+  .filter-select:focus {
+    outline: none;
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: var(--spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    color: var(--color-text-light);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+  }
+
+  .search-clear:hover {
+    background-color: var(--color-background-alt);
+    color: var(--color-text);
+  }
+
+  .search-help {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    margin-top: var(--spacing-xs);
+  }
+
+  .search-results {
+    text-align: center;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-alt);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .table-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .students-table {
+    width: 100%;
+    margin: 0;
+  }
+
+  .students-table th {
+    background-color: var(--color-background-alt);
+    font-weight: 600;
+    color: var(--color-text);
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .students-table td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  .sortable {
+    position: relative;
+  }
+
+  .sort-button {
+    background: none;
+    border: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--color-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 0;
+  }
+
+  .sort-button:hover {
+    color: var(--color-primary);
+  }
+
+  .sort-button:focus {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .sort-indicator {
+    font-size: var(--font-size-sm);
+    opacity: 0.5;
+  }
+
+  .sort-button[aria-sort="ascending"] .sort-indicator::after {
+    content: "↑";
+    opacity: 1;
+  }
+
+  .sort-button[aria-sort="descending"] .sort-indicator::after {
+    content: "↓";
+    opacity: 1;
+  }
+
+  .select-column,
+  .actions-column {
+    width: 60px;
+    text-align: center;
+  }
+
+  .select-checkbox {
+    cursor: pointer;
+  }
+
+  .student-name {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .email-link {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .email-link:hover {
+    text-decoration: underline;
+  }
+
+  .student-id {
+    background-color: var(--color-background-alt);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+  }
+
+  .activity-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .activity-badge {
+    display: inline-block;
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  .activity-badge-missing {
+    background-color: var(--color-warning);
+    color: var(--color-text);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+  }
+
+  .btn-action {
+    background: none;
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+  }
+
+  .btn-action:hover {
+    background-color: var(--color-background-alt);
+  }
+
+  .btn-action:focus {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .btn-edit:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .btn-delete:hover {
+    border-color: var(--color-error);
+    color: var(--color-error);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-light);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .empty-state h3 {
+    font-size: var(--font-size-xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .bulk-actions {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    z-index: 100;
+  }
+
+  .bulk-actions-info {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .bulk-actions-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .search-controls {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-md);
+    }
+
+    .students-table {
+      font-size: var(--font-size-sm);
+    }
+
+    .students-table th,
+    .students-table td {
+      padding: var(--spacing-sm);
+    }
+
+    .activity-badges {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .bulk-actions {
+      position: static;
+      transform: none;
+      margin-top: var(--spacing-lg);
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .bulk-actions-buttons {
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .select-column,
+    .actions-column {
+      display: none;
+    }
+
+    .student-row {
+      cursor: pointer;
+    }
+
+    .student-row:hover {
+      background-color: var(--color-background-alt);
+    }
+  }
+
+  /* High Contrast Mode */
+  @media (prefers-contrast: high) {
+    .activity-badge {
+      border: 2px solid;
+    }
+    
+    .btn-action {
+      border-width: 2px;
+    }
+  }
+</style>
+
+<script>
+  import { StudentService } from '../utils/studentService';
+  import { ActivityService } from '../utils/activityService';
+
+  class StudentListManager {
+    private container: HTMLElement;
+    private searchInput: HTMLInputElement;
+    private activityFilter: HTMLSelectElement;
+    private studentsTable: HTMLTableElement;
+    private studentstbody: HTMLElement;
+    private selectAllCheckbox: HTMLInputElement;
+    private bulkActions: HTMLElement;
+    private selectedCount: HTMLElement;
+    private searchResults: HTMLElement;
+    private emptyState: HTMLElement;
+    
+    private allStudents: any[] = [];
+    private filteredStudents: any[] = [];
+    private currentSort: { column: string; direction: 'asc' | 'desc' } = { column: 'name', direction: 'asc' };
+
+    constructor() {
+      this.container = document.querySelector('.student-list-container') as HTMLElement;
+      this.searchInput = document.getElementById('student-search') as HTMLInputElement;
+      this.activityFilter = document.getElementById('activity-filter') as HTMLSelectElement;
+      this.studentsTable = document.querySelector('.students-table') as HTMLTableElement;
+      this.studentstbody = document.getElementById('students-tbody') as HTMLElement;
+      this.selectAllCheckbox = document.getElementById('select-all') as HTMLInputElement;
+      this.bulkActions = document.getElementById('bulk-actions') as HTMLElement;
+      this.selectedCount = document.getElementById('selected-count') as HTMLElement;
+      this.searchResults = document.getElementById('search-results-info') as HTMLElement;
+      this.emptyState = document.getElementById('empty-state') as HTMLElement;
+
+      this.init();
+    }
+
+    private init() {
+      this.loadStudents();
+      this.setupEventListeners();
+      this.setupKeyboardNavigation();
+    }
+
+    private loadStudents() {
+      this.allStudents = StudentService.getAll();
+      this.filteredStudents = [...this.allStudents];
+      this.renderStudents();
+      this.updateSearchResults();
+    }
+
+    private setupEventListeners() {
+      // Search functionality
+      if (this.searchInput) {
+        this.searchInput.addEventListener('input', this.handleSearch.bind(this));
+        this.searchInput.addEventListener('search', this.handleSearch.bind(this));
+      }
+
+      // Activity filter
+      if (this.activityFilter) {
+        this.activityFilter.addEventListener('change', this.handleFilter.bind(this));
+      }
+
+      // Sort functionality
+      const sortButtons = this.studentsTable.querySelectorAll('.sort-button');
+      sortButtons.forEach(button => {
+        button.addEventListener('click', this.handleSort.bind(this));
+      });
+
+      // Select all functionality
+      if (this.selectAllCheckbox) {
+        this.selectAllCheckbox.addEventListener('change', this.handleSelectAll.bind(this));
+      }
+
+      // Bulk actions
+      const bulkExportBtn = document.getElementById('bulk-export');
+      const bulkDeleteBtn = document.getElementById('bulk-delete');
+      
+      if (bulkExportBtn) {
+        bulkExportBtn.addEventListener('click', this.handleBulkExport.bind(this));
+      }
+      
+      if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', this.handleBulkDelete.bind(this));
+      }
+
+      // Clear search
+      const clearSearchBtn = document.getElementById('clear-search');
+      if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', this.clearSearch.bind(this));
+      }
+    }
+
+    private setupKeyboardNavigation() {
+      // Add keyboard navigation for table rows
+      this.studentsTable.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          this.navigateTable(event.key === 'ArrowDown' ? 1 : -1);
+        }
+      });
+    }
+
+    private handleSearch() {
+      const query = this.searchInput.value.toLowerCase().trim();
+      
+      // Show/hide clear button
+      const clearButton = this.container.querySelector('.search-clear') as HTMLElement;
+      if (clearButton) {
+        clearButton.style.display = query ? 'block' : 'none';
+      }
+
+      this.filterStudents();
+    }
+
+    private handleFilter() {
+      this.filterStudents();
+    }
+
+    private filterStudents() {
+      const searchQuery = this.searchInput?.value.toLowerCase().trim() || '';
+      const activityFilter = this.activityFilter?.value || '';
+
+      this.filteredStudents = this.allStudents.filter(student => {
+        // Search filter
+        const matchesSearch = !searchQuery || 
+          student.name.toLowerCase().includes(searchQuery) ||
+          student.email.toLowerCase().includes(searchQuery) ||
+          student.id.toLowerCase().includes(searchQuery);
+
+        // Activity filter
+        const matchesActivity = !activityFilter || 
+          student.activities.includes(activityFilter);
+
+        return matchesSearch && matchesActivity;
+      });
+
+      this.renderStudents();
+      this.updateSearchResults();
+    }
+
+    private handleSort(event: Event) {
+      const button = event.currentTarget as HTMLButtonElement;
+      const column = button.closest('th')?.dataset.sort;
+      
+      if (!column) return;
+
+      // Update sort direction
+      if (this.currentSort.column === column) {
+        this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.currentSort.column = column;
+        this.currentSort.direction = 'asc';
+      }
+
+      // Update ARIA attributes
+      const allSortButtons = this.studentsTable.querySelectorAll('.sort-button');
+      allSortButtons.forEach(btn => btn.removeAttribute('aria-sort'));
+      button.setAttribute('aria-sort', this.currentSort.direction === 'asc' ? 'ascending' : 'descending');
+
+      // Sort students
+      this.sortStudents();
+      this.renderStudents();
+    }
+
+    private sortStudents() {
+      this.filteredStudents.sort((a, b) => {
+        let aValue = a[this.currentSort.column];
+        let bValue = b[this.currentSort.column];
+
+        // Handle different data types
+        if (this.currentSort.column === 'registeredAt') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) {
+          return this.currentSort.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return this.currentSort.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    private renderStudents() {
+      if (this.filteredStudents.length === 0) {
+        this.studentsTable.style.display = 'none';
+        this.emptyState.style.display = 'block';
+        return;
+      }
+
+      this.studentsTable.style.display = 'table';
+      this.emptyState.style.display = 'none';
+
+      // This would typically re-render the table rows
+      // For now, we'll update the display of existing rows
+      const rows = this.studentsTable.querySelectorAll('.student-row');
+      rows.forEach(row => {
+        const studentId = row.getAttribute('data-student-id');
+        const shouldShow = this.filteredStudents.some(student => student.id === studentId);
+        (row as HTMLElement).style.display = shouldShow ? '' : 'none';
+      });
+
+      this.updateSelectionState();
+    }
+
+    private updateSearchResults() {
+      if (this.searchResults) {
+        const count = this.filteredStudents.length;
+        const total = this.allStudents.length;
+        
+        if (count === total) {
+          this.searchResults.textContent = `Mostrando ${count} estudante(s)`;
+        } else {
+          this.searchResults.textContent = `Mostrando ${count} de ${total} estudante(s)`;
+        }
+      }
+    }
+
+    private handleSelectAll() {
+      const checkboxes = this.studentsTable.querySelectorAll('.student-checkbox') as NodeListOf<HTMLInputElement>;
+      const isChecked = this.selectAllCheckbox.checked;
+      
+      checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('.student-row') as HTMLElement;
+        if (row.style.display !== 'none') {
+          checkbox.checked = isChecked;
+        }
+      });
+
+      this.updateSelectionState();
+    }
+
+    private updateSelectionState() {
+      const visibleCheckboxes = Array.from(this.studentsTable.querySelectorAll('.student-checkbox'))
+        .filter(checkbox => {
+          const row = checkbox.closest('.student-row') as HTMLElement;
+          return row.style.display !== 'none';
+        }) as HTMLInputElement[];
+
+      const checkedBoxes = visibleCheckboxes.filter(checkbox => checkbox.checked);
+      
+      // Update select all checkbox
+      if (this.selectAllCheckbox) {
+        this.selectAllCheckbox.checked = visibleCheckboxes.length > 0 && checkedBoxes.length === visibleCheckboxes.length;
+        this.selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < visibleCheckboxes.length;
+      }
+
+      // Update bulk actions
+      if (this.bulkActions && this.selectedCount) {
+        this.selectedCount.textContent = checkedBoxes.length.toString();
+        this.bulkActions.style.display = checkedBoxes.length > 0 ? 'flex' : 'none';
+      }
+    }
+
+    private async handleBulkExport() {
+      const selectedIds = this.getSelectedStudentIds();
+      if (selectedIds.length === 0) return;
+
+      try {
+        const exportData = StudentService.exportData().filter(student => 
+          selectedIds.includes(student.id)
+        );
+
+        this.downloadCSV(exportData, 'estudantes_selecionados.csv');
+      } catch (error) {
+        alert('Erro ao exportar dados');
+      }
+    }
+
+    private async handleBulkDelete() {
+      const selectedIds = this.getSelectedStudentIds();
+      if (selectedIds.length === 0) return;
+
+      const confirmed = confirm(`Tem certeza que deseja excluir ${selectedIds.length} estudante(s)?`);
+      if (!confirmed) return;
+
+      try {
+        const result = await StudentService.bulkDelete(selectedIds);
+        
+        if (result.success) {
+          this.loadStudents(); // Reload the list
+          alert(`${result.data} estudante(s) excluído(s) com sucesso`);
+        } else {
+          alert(`Erro: ${result.error}`);
+        }
+      } catch (error) {
+        alert('Erro ao excluir estudantes');
+      }
+    }
+
+    private getSelectedStudentIds(): string[] {
+      const checkboxes = this.studentsTable.querySelectorAll('.student-checkbox:checked') as NodeListOf<HTMLInputElement>;
+      return Array.from(checkboxes).map(checkbox => checkbox.value);
+    }
+
+    private clearSearch() {
+      if (this.searchInput) {
+        this.searchInput.value = '';
+      }
+      if (this.activityFilter) {
+        this.activityFilter.value = '';
+      }
+      this.filterStudents();
+    }
+
+    private navigateTable(direction: number) {
+      const focusedElement = document.activeElement;
+      const rows = Array.from(this.studentsTable.querySelectorAll('.student-row')) as HTMLElement[];
+      const visibleRows = rows.filter(row => row.style.display !== 'none');
+      
+      if (visibleRows.length === 0) return;
+
+      let currentIndex = -1;
+      if (focusedElement) {
+        const currentRow = focusedElement.closest('.student-row') as HTMLElement;
+        currentIndex = visibleRows.indexOf(currentRow);
+      }
+
+      const nextIndex = Math.max(0, Math.min(visibleRows.length - 1, currentIndex + direction));
+      const nextRow = visibleRows[nextIndex];
+      
+      if (nextRow) {
+        const firstFocusable = nextRow.querySelector('input, button, a') as HTMLElement;
+        if (firstFocusable) {
+          firstFocusable.focus();
+        }
+      }
+    }
+
+    private downloadCSV(data: any[], filename: string) {
+      const headers = Object.keys(data[0]);
+      const csvContent = [
+        headers.join(','),
+        ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  }
+
+  // Initialize when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new StudentListManager();
+  });
+</script>

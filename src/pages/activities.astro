@@ -1,0 +1,614 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ActivityManager from '../components/ActivityManager.astro';
+import { ActivityService } from '../utils/activityService';
+
+// Get all activities and statistics
+const activities = ActivityService.getAllWithCounts();
+const stats = ActivityService.getActivityStats();
+---
+
+<Layout title="Gerenciar Atividades - Sistema de Dados Estudantis">
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  
+  <div class="activities-container">
+    <div class="page-header">
+      <h1>Gerenciar Atividades</h1>
+      <p class="page-description">
+        Crie, edite e organize as atividades complementares disponíveis para os estudantes.
+      </p>
+    </div>
+
+    {activities.length === 0 ? (
+      <div class="empty-state">
+        <div class="empty-content">
+          <div class="empty-icon" aria-hidden="true">📚</div>
+          <h2>Nenhuma Atividade Criada</h2>
+          <p>
+            Ainda não há atividades complementares no sistema. Comece criando a primeira atividade para que os estudantes possam se inscrever.
+          </p>
+          <div class="empty-actions">
+            <button type="button" class="btn btn-primary" id="create-first-activity">
+              Criar Primeira Atividade
+            </button>
+            <a href="/" class="btn btn-secondary">
+              Voltar ao Início
+            </a>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <!-- Statistics Overview -->
+      <div class="stats-overview">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number">{stats.total}</div>
+            <div class="stat-label">Total de Atividades</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{stats.totalStudentEnrollments}</div>
+            <div class="stat-label">Total de Inscrições</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{stats.averageStudentsPerActivity}</div>
+            <div class="stat-label">Média por Atividade</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{stats.emptyActivities}</div>
+            <div class="stat-label">Atividades Vazias</div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <!-- Activity Manager Component -->
+    <ActivityManager 
+      activities={activities}
+      showCreateForm={true}
+      showStats={false}
+    />
+
+    {activities.length > 0 && (
+      <>
+        <!-- Popular Activities -->
+        {stats.mostPopularActivity && (
+          <div class="popular-section">
+            <h2>Atividade Mais Popular</h2>
+            <div class="popular-card">
+              <div class="popular-info">
+                <h3>{stats.mostPopularActivity.name}</h3>
+                <p>{stats.mostPopularActivity.description}</p>
+              </div>
+              <div class="popular-stats">
+                <div class="stat-highlight">
+                  <span class="stat-number">{stats.mostPopularActivity.studentCount}</span>
+                  <span class="stat-label">estudantes inscritos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <!-- Activity Insights -->
+        <div class="insights-section">
+          <h2>Insights das Atividades</h2>
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-icon" aria-hidden="true">📈</div>
+              <div class="insight-content">
+                <h3>Taxa de Ocupação</h3>
+                <p>
+                  {stats.emptyActivities === 0 
+                    ? 'Todas as atividades têm pelo menos um estudante inscrito!'
+                    : `${stats.emptyActivities} atividade(s) ainda não têm estudantes inscritos.`
+                  }
+                </p>
+              </div>
+            </div>
+            
+            <div class="insight-card">
+              <div class="insight-icon" aria-hidden="true">🎯</div>
+              <div class="insight-content">
+                <h3>Distribuição</h3>
+                <p>
+                  Em média, cada atividade tem {stats.averageStudentsPerActivity} estudante(s) inscrito(s).
+                </p>
+              </div>
+            </div>
+            
+            <div class="insight-card">
+              <div class="insight-icon" aria-hidden="true">⭐</div>
+              <div class="insight-content">
+                <h3>Engajamento</h3>
+                <p>
+                  {stats.totalStudentEnrollments > 0 
+                    ? `Total de ${stats.totalStudentEnrollments} inscrição(ões) em todas as atividades.`
+                    : 'Ainda não há inscrições nas atividades.'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Ações Rápidas</h2>
+      <div class="actions-grid">
+        <button type="button" class="action-item" id="create-activity-btn">
+          <div class="action-icon" aria-hidden="true">➕</div>
+          <div class="action-content">
+            <h3>Nova Atividade</h3>
+            <p>Criar uma nova atividade complementar</p>
+          </div>
+        </button>
+        
+        <a href="/register" class="action-item">
+          <div class="action-icon" aria-hidden="true">👥</div>
+          <div class="action-content">
+            <h3>Registrar Estudante</h3>
+            <p>Adicionar estudante às atividades</p>
+          </div>
+        </a>
+        
+        <a href="/students" class="action-item">
+          <div class="action-icon" aria-hidden="true">📊</div>
+          <div class="action-content">
+            <h3>Ver Estudantes</h3>
+            <p>Gerenciar estudantes registrados</p>
+          </div>
+        </a>
+        
+        <button type="button" class="action-item" id="export-activities">
+          <div class="action-icon" aria-hidden="true">📋</div>
+          <div class="action-content">
+            <h3>Exportar Atividades</h3>
+            <p>Baixar relatório das atividades</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tips Section -->
+    <div class="tips-section">
+      <h2>Dicas para Gerenciar Atividades</h2>
+      <div class="tips-grid">
+        <div class="tip-item">
+          <div class="tip-icon" aria-hidden="true">💡</div>
+          <div class="tip-content">
+            <h3>Descrições Claras</h3>
+            <p>Use descrições detalhadas para ajudar estudantes a escolher as atividades certas.</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon" aria-hidden="true">🔄</div>
+          <div class="tip-content">
+            <h3>Atualizações Regulares</h3>
+            <p>Mantenha as informações das atividades sempre atualizadas.</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon" aria-hidden="true">📈</div>
+          <div class="tip-content">
+            <h3>Monitore o Engajamento</h3>
+            <p>Acompanhe quais atividades são mais populares e ajuste conforme necessário.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="navigation-section">
+      <div class="nav-links">
+        <a href="/students" class="nav-link">
+          ← Gerenciar Estudantes
+        </a>
+        <a href="/" class="nav-link">
+          Voltar ao Início →
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .activities-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-3xl);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-description {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: var(--line-height-relaxed);
+  }
+
+  .empty-state {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .empty-content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.6;
+  }
+
+  .empty-state h2 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .empty-state p {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-xl);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .empty-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stats-overview {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+  }
+
+  .stat-number {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    font-weight: 500;
+  }
+
+  .popular-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-2xl) 0;
+  }
+
+  .popular-section h2 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+  }
+
+  .popular-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    background: rgba(37, 99, 235, 0.05);
+  }
+
+  .popular-info h3 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-xl);
+  }
+
+  .popular-info p {
+    color: var(--color-text-light);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .stat-highlight {
+    text-align: center;
+  }
+
+  .stat-highlight .stat-number {
+    display: block;
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .stat-highlight .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+  }
+
+  .insights-section,
+  .quick-actions,
+  .tips-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-2xl) 0;
+  }
+
+  .insights-section h2,
+  .quick-actions h2,
+  .tips-section h2 {
+    text-align: center;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .insights-grid,
+  .actions-grid,
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .insight-card,
+  .tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+  }
+
+  .insight-icon,
+  .tip-icon {
+    font-size: 1.5rem;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  .insight-content h3,
+  .tip-content h3 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+  }
+
+  .insight-content p,
+  .tip-content p {
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+  }
+
+  .action-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background-alt);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-base);
+    cursor: pointer;
+  }
+
+  .action-item:hover {
+    border-color: var(--color-primary-light);
+    background: white;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .action-icon {
+    font-size: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .action-content h3 {
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+  }
+
+  .action-content p {
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+    margin: 0;
+  }
+
+  .navigation-section {
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .nav-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  .nav-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+  }
+
+  .nav-link:hover {
+    background-color: var(--color-background-alt);
+    text-decoration: underline;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .activities-container {
+      padding: 0 var(--spacing-md);
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .insights-grid,
+    .actions-grid,
+    .tips-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .popular-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+    }
+
+    .empty-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .empty-actions .btn {
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .nav-links {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* High Contrast Mode */
+  @media (prefers-contrast: high) {
+    .stat-item,
+    .insight-card,
+    .action-item,
+    .tip-item,
+    .popular-card,
+    .empty-state {
+      border-width: 2px;
+    }
+  }
+</style>
+
+<script>
+  import { ActivityService } from '../utils/activityService';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Create activity button functionality
+    const createBtn = document.getElementById('create-activity-btn');
+    const createFirstBtn = document.getElementById('create-first-activity');
+    
+    const showCreateForm = () => {
+      const toggleBtn = document.getElementById('toggle-form');
+      if (toggleBtn) {
+        toggleBtn.click();
+      }
+    };
+
+    if (createBtn) {
+      createBtn.addEventListener('click', showCreateForm);
+    }
+    
+    if (createFirstBtn) {
+      createFirstBtn.addEventListener('click', showCreateForm);
+    }
+
+    // Export activities functionality
+    const exportBtn = document.getElementById('export-activities');
+    
+    if (exportBtn) {
+      exportBtn.addEventListener('click', async () => {
+        try {
+          const exportData = ActivityService.exportData();
+          
+          if (exportData.length === 0) {
+            alert('Não há atividades para exportar.');
+            return;
+          }
+
+          // Create CSV content
+          const headers = Object.keys(exportData[0]);
+          const csvContent = [
+            headers.join(','),
+            ...exportData.map(row => 
+              headers.map(header => `"${row[header]}"`).join(',')
+            )
+          ].join('\n');
+
+          // Download CSV
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          
+          if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `atividades_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        } catch (error) {
+          alert('Erro ao exportar dados. Tente novamente.');
+        }
+      });
+    }
+  });
+</script>
